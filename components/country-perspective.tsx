@@ -18,7 +18,7 @@ export function CountryPerspective({ thread }: { thread: Thread }) {
           </div>
         ))}
       </div>
-      <p className="aggregate-note">Mock country totals only. Debatica does not collect or display anyone&apos;s individual location.</p>
+      <p className="aggregate-note">Country comparisons are aggregated. Debatica never displays anyone&apos;s individual location.</p>
     </section>
   );
 }

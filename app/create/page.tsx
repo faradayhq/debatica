@@ -1,23 +1,70 @@
 "use client";
 
 import { FormEvent, useState } from "react";
-import { categories } from "@/lib/data";
+import Link from "next/link";
+import { categories, type Category } from "@/lib/data";
+import { getOrCreateGuestIdentity } from "@/lib/guest-profile";
+import { getSupabaseBrowserClient } from "@/lib/supabase/client";
+import { createThread, writeErrorMessage } from "@/lib/supabase/data";
 
 export default function CreatePage() {
   const [submitted, setSubmitted] = useState(false);
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
-  function submit(e: FormEvent) { e.preventDefault(); if (title.trim()) setSubmitted(true); }
-  if (submitted) return <div className="page inner-page"><div className="success-state"><span>✓</span><p className="section-index">PREVIEW CREATED</p><h1>Your debate is ready.</h1><p>This prototype does not publish or save threads after refresh.</p><button className="primary-button" onClick={() => { setSubmitted(false); setTitle(""); setDescription(""); }}>Create another</button></div></div>;
+  const [category, setCategory] = useState<Category | "">("");
+  const [authorName, setAuthorName] = useState("");
+  const [createdId, setCreatedId] = useState("");
+  const [submitting, setSubmitting] = useState(false);
+  const [submitError, setSubmitError] = useState("");
+
+  async function submit(e: FormEvent) {
+    e.preventDefault();
+    if (!title.trim() || !category || submitting) return;
+    const identity = getOrCreateGuestIdentity();
+    setAuthorName(identity.displayName);
+    setSubmitError("");
+    const client = getSupabaseBrowserClient();
+    if (!client) {
+      setSubmitError("Publishing is unavailable because the database is not configured.");
+      return;
+    }
+    setSubmitting(true);
+    try {
+      const created = await createThread(client, {
+        title: title.trim(),
+        description: description.trim(),
+        category,
+        guestId: identity.id
+      });
+      setCreatedId(created.id);
+      setSubmitted(true);
+    } catch (error) {
+      setSubmitError(writeErrorMessage(error, "Could not publish this thread. Please try again."));
+    } finally {
+      setSubmitting(false);
+    }
+  }
+
+  function resetForm() {
+    setSubmitted(false);
+    setTitle("");
+    setDescription("");
+    setCategory("");
+    setCreatedId("");
+    setSubmitError("");
+  }
+
+  if (submitted) return <div className="page inner-page"><div className="success-state"><span>✓</span><p className="section-index">THREAD PUBLISHED</p><h1>Your debate is ready.</h1><p>Posted by <b>{authorName}</b>. It is now available in the latest thread list.</p><Link className="primary-button" href={`/thread/${createdId}`}>Open thread</Link><button className="primary-button" onClick={resetForm}>Create another</button></div></div>;
   return (
     <div className="page inner-page create-page">
       <header className="page-intro"><span className="section-index">START SOMETHING</span><h1>Create a thread</h1><p>Make a clear statement people can agree or disagree with.</p></header>
       <form className="create-form" onSubmit={submit}>
         <label><span>Title <b>required</b></span><textarea value={title} onChange={(e) => setTitle(e.target.value)} maxLength={140} required placeholder="e.g. Public transport should be free in every city" /><small>{title.length}/140</small></label>
-        <label><span>Category <b>required</b></span><select required defaultValue=""><option value="" disabled>Choose a category</option>{categories.map((category) => <option key={category}>{category}</option>)}</select></label>
+        <label><span>Category <b>required</b></span><select required value={category} onChange={(event) => setCategory(event.target.value as Category)}><option value="" disabled>Choose a category</option>{categories.map((item) => <option key={item}>{item}</option>)}</select></label>
         <label><span>Description <em>optional</em></span><textarea className="description-input" value={description} onChange={(e) => setDescription(e.target.value)} maxLength={400} placeholder="Add context to help people understand the question…" /><small>{description.length}/400</small></label>
-        <div className="posting-rules"><p>Before previewing</p><ul><li>Write a claim, not an open-ended question</li><li>Keep it specific and understandable</li><li>Preview threads are not published or saved</li></ul></div>
-        <button className="primary-button" type="submit">Preview thread <span>→</span></button>
+        <div className="posting-rules"><p>Before publishing</p><ul><li>Write a claim, not an open-ended question</li><li>Keep it specific and understandable</li><li>Your thread will be visible as soon as it is published</li></ul></div>
+        {submitError && <p className="form-error" role="alert">{submitError}</p>}
+        <button className="primary-button" type="submit" disabled={submitting}>{submitting ? "Publishing…" : "Publish thread"} <span>→</span></button>
       </form>
     </div>
   );
