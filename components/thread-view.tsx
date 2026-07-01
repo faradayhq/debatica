@@ -380,18 +380,18 @@ export function ThreadView({ thread }: { thread: Thread }) {
           { as: "h1", text: displayedTitle },
           ...(thread.description ? [{ as: "p" as const, className: "thread-description", text: thread.description }] : [])
         ]} />
-        <VoteSplit agree={voteCounts.agree} disagree={voteCounts.disagree} animate />
-        <div className="thread-stats" aria-live="polite">
-          <span title={`${voteCounts.agree + voteCounts.disagree} votes`}><Icon name="vote" size={15} /> <AnimatedNumber value={voteCounts.agree + voteCounts.disagree} format={(count) => t("card.votes", { count: formatCompactCount(count) })} /></span>
-          <span title={`${allComments.length} comments`}><Icon name="comment" size={15} /> {t("thread.comments", { count: formatCompactCount(allComments.length) })}</span>
-          <button type="button" className="share-x-button" onClick={shareOnX}>{t("action.shareX")}</button>
-        </div>
         <p className="vote-prompt">{t("thread.votePrompt")}</p>
         <div className="vote-actions">
           <button disabled={voteSaving} aria-pressed={vote === "agree"} className={`agree-button ${vote === "agree" ? "selected" : ""}`} onClick={() => castVote("agree")}><span>✓</span> {t("thread.agree")}</button>
           <button disabled={voteSaving} aria-pressed={vote === "disagree"} className={`disagree-button ${vote === "disagree" ? "selected" : ""}`} onClick={() => castVote("disagree")}><span>×</span> {t("thread.disagree")}</button>
         </div>
         {vote && <p className="vote-confirmation">{t("thread.previewVote")}</p>}
+        <VoteSplit agree={voteCounts.agree} disagree={voteCounts.disagree} animate />
+        <div className="thread-stats" aria-live="polite">
+          <span title={`${voteCounts.agree + voteCounts.disagree} votes`}><Icon name="vote" size={15} /> <AnimatedNumber value={voteCounts.agree + voteCounts.disagree} format={(count) => t("card.votes", { count: formatCompactCount(count) })} /></span>
+          <span title={`${allComments.length} comments`}><Icon name="comment" size={15} /> {t("thread.comments", { count: formatCompactCount(allComments.length) })}</span>
+          <button type="button" className="share-x-button" onClick={shareOnX}>{t("action.shareX")}</button>
+        </div>
         {dataError && <p className="data-status error thread-data-status" role="alert">{dataError}</p>}
       </article>
 

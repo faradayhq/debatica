@@ -39,38 +39,192 @@ export type CountryResult = {
 };
 
 type SeedCommentTuple = [side: "agree" | "disagree" | "neutral", text: string];
-type SeedThread = Thread & { seedComments: SeedCommentTuple[] };
+type SeedThreadInput = Pick<Thread, "id" | "title" | "category" | "time"> & {
+  description: string;
+  seedComments?: SeedCommentTuple[];
+};
+type SeedThread = Thread & { description: string; seedComments: SeedCommentTuple[] };
 
-function seedThread(id: string, title: string, category: Category, time: string, seedComments: SeedCommentTuple[] = [], description = ""): SeedThread {
-  return { id, title, category, ...(description && { description }), agree: 0, disagree: 0, votes: 0, comments: seedComments.length, time, seedComments };
+function seedThread({ id, title, category, time, description, seedComments = [] }: SeedThreadInput): SeedThread {
+  return { id, title, category, description, agree: 0, disagree: 0, votes: 0, comments: seedComments.length, time, seedComments };
 }
 
 const seedThreads: SeedThread[] = [
-  seedThread("microsoft-ai-spending-layoffs", "Microsoft spent billions on AI while cutting thousands of jobs. Fair or not?", "AI & Work", "12m"),
-  seedThread("meta-workers-ai-roles-layoffs", "Meta is pushing workers into AI roles after layoffs. Is this the future of work?", "AI & Work", "24m"),
-  seedThread("oracle-ai-data-center-layoffs", "Oracle is shrinking staff while chasing huge AI data-center deals. Is this progress or damage?", "AI & Work", "37m"),
-  seedThread("tesla-driverless-robotaxis-austin", "Tesla is rolling out driverless robotaxis in Austin. Would you ride one?", "AI & Tech", "49m"),
-  seedThread("ai-training-authors-musicians-pay", "Should AI companies pay authors and musicians before training on their work?", "AI & Tech", "1h"),
-  seedThread("portugal-croatia-world-cup-resale-prices", "Portugal vs Croatia World Cup resale tickets hit over $3,000. Should FIFA cap prices?", "World Cup", "1h"),
-  seedThread("world-cup-final-ticket-prices-rich", "World Cup final tickets reached nearly $33,000. Is football becoming only for the rich?", "World Cup", "2h"),
-  seedThread("fifa-dynamic-pricing-world-cup", "Should FIFA be allowed to use dynamic pricing for World Cup tickets?", "World Cup", "2h"),
-  seedThread("iran-officials-us-visas-world-cup", "Iran officials were denied US visas for the World Cup. Should hosts control who gets in?", "World Cup", "3h"),
-  seedThread("fifa-hosts-strict-immigration-rules", "Should FIFA avoid host countries with strict immigration rules?", "World Cup", "4h"),
-  seedThread("rights-groups-fifa-inclusivity-2026", "Rights groups warned FIFA about inclusivity at the 2026 World Cup. Should FIFA intervene?", "World Cup", "6h"),
-  seedThread("world-cup-expanded-48-teams", "The World Cup expanded to 48 teams. Is bigger actually better?", "World Cup", "8h"),
-  seedThread("world-cup-ticket-demand-fan-priority", "World Cup ticket demand was oversubscribed over 30 times. Should real fans get priority?", "World Cup", "10h"),
-  seedThread("supreme-court-trump-haitians-syrians-protections", "The US Supreme Court let Trump end protections for Haitians and Syrians. Is that fair?", "Immigration", "12h"),
-  seedThread("uk-asylum-seekers-settlement-repayment", "Should asylum seekers repay £10,000 before settling in the UK?", "Immigration", "14h"),
-  seedThread("overwhelmed-borders-asylum-seekers", "Should countries turn away asylum seekers when borders are overwhelmed?", "Immigration", "16h"),
-  seedThread("eu-offshore-migrant-detention-centers", "The EU backed offshore migrant detention centers. Necessary control or human rights abuse?", "Immigration", "18h"),
-  seedThread("greece-faster-deportations-asylum", "Greece approved faster deportations for rejected asylum seekers. Should Europe go harder?", "Immigration", "20h"),
-  seedThread("us-mass-deportations-protests", "Should the US carry out mass deportations even if it sparks protests?", "Immigration", "22h"),
-  seedThread("egg-companies-donate-price-fixing-claims", "Egg companies will donate 53 million eggs after price-fixing claims. Is that enough?", "Cost of Living", "1d"),
-  seedThread("us-grocery-inflation-food-price-caps", "US grocery inflation had its biggest jump since 2022. Should governments cap food prices?", "Cost of Living", "1d"),
-  seedThread("mcdonalds-us-sales-fast-food-expensive", "McDonald's missed US sales targets. Has fast food become too expensive?", "Cost of Living", "1d"),
-  seedThread("canada-grocery-control-supermarket-breakup", "Canada says five companies control 75% of groceries. Should supermarkets be broken up?", "Cost of Living", "2d"),
-  seedThread("japan-rice-prices-government-stocks", "Japan's rice prices more than doubled since 2024. Should governments release stocks sooner?", "Cost of Living", "2d"),
-  seedThread("general-mills-profit-price-hikes-inflation", "General Mills beat profit estimates after price hikes. Are food companies profiting from inflation?", "Cost of Living", "3d")
+  seedThread({
+    id: "microsoft-ai-spending-layoffs",
+    title: "Microsoft spent billions on AI while cutting thousands of jobs. Fair or not?",
+    category: "AI & Work",
+    time: "12m",
+    description: "Microsoft has announced large job cuts while continuing major investments in AI infrastructure and products. Supporters argue the company must redirect resources toward future growth and stay competitive. Critics say profitable tech firms should not reduce staff while spending heavily on automation."
+  }),
+  seedThread({
+    id: "meta-workers-ai-roles-layoffs",
+    title: "Meta is pushing workers into AI roles after layoffs. Is this the future of work?",
+    category: "AI & Work",
+    time: "24m",
+    description: "Meta has reorganized parts of its workforce around AI after earlier layoffs and new hiring for advanced AI teams. Supporters see this as a necessary shift as user products and advertising become more AI-driven. Critics worry workers are being pushed to retrain while stable roles disappear."
+  }),
+  seedThread({
+    id: "oracle-ai-data-center-layoffs",
+    title: "Oracle is shrinking staff while chasing huge AI data-center deals. Is this progress or damage?",
+    category: "AI & Work",
+    time: "37m",
+    description: "Oracle has cut jobs while expanding cloud and AI data-center commitments tied to rising demand for computing power. Supporters argue the company is moving capital toward higher-growth infrastructure. Critics say the benefits of AI deals are uneven if employees lose work during the transition."
+  }),
+  seedThread({
+    id: "tesla-driverless-robotaxis-austin",
+    title: "Tesla is rolling out driverless robotaxis in Austin. Would you ride one?",
+    category: "AI & Tech",
+    time: "49m",
+    description: "Tesla began limited robotaxi service in Austin as it tests driverless rides under real traffic conditions. Supporters say autonomous taxis could lower transport costs and improve road safety over time. Critics point to safety incidents, regulation gaps, and the risks of public testing."
+  }),
+  seedThread({
+    id: "ai-training-authors-musicians-pay",
+    title: "Should AI companies pay authors and musicians before training on their work?",
+    category: "AI & Tech",
+    time: "1h",
+    description: "Authors, musicians, and publishers have challenged AI companies over training systems on copyrighted books, songs, and recordings. Supporters of payment say creators should control and profit from their work. Opponents argue training can be fair use or that broad licensing could slow innovation."
+  }),
+  seedThread({
+    id: "portugal-croatia-world-cup-resale-prices",
+    title: "Portugal vs Croatia World Cup resale tickets hit over $3,000. Should FIFA cap prices?",
+    category: "World Cup",
+    time: "1h",
+    description: "Some resale listings for Portugal vs Croatia World Cup tickets have climbed above $3,000 as demand outpaces supply. Supporters of caps say major tournaments should remain accessible to ordinary fans. Opponents say resale prices reflect market demand and restrictions can push trading underground."
+  }),
+  seedThread({
+    id: "world-cup-final-ticket-prices-rich",
+    title: "World Cup final tickets reached nearly $33,000. Is football becoming only for the rich?",
+    category: "World Cup",
+    time: "2h",
+    description: "World Cup final ticket listings have appeared at extremely high resale prices, with some near $33,000. Supporters of premium pricing say scarce seats for global events will always command high prices. Critics argue football loses its public character when many fans cannot realistically attend."
+  }),
+  seedThread({
+    id: "fifa-dynamic-pricing-world-cup",
+    title: "Should FIFA be allowed to use dynamic pricing for World Cup tickets?",
+    category: "World Cup",
+    time: "2h",
+    description: "FIFA has faced scrutiny over ticket prices and the possibility of prices moving with demand for major World Cup matches. Supporters say dynamic pricing can manage demand and capture revenue for the tournament. Critics say it creates uncertainty and can price loyal fans out."
+  }),
+  seedThread({
+    id: "iran-officials-us-visas-world-cup",
+    title: "Iran officials were denied US visas for the World Cup. Should hosts control who gets in?",
+    category: "World Cup",
+    time: "3h",
+    description: "Iranian football officials reportedly faced US visa denials connected to World Cup events hosted in North America. Supporters say host countries must control entry under their own security and immigration rules. Critics argue global tournaments require predictable access for qualified teams and officials."
+  }),
+  seedThread({
+    id: "fifa-hosts-strict-immigration-rules",
+    title: "Should FIFA avoid host countries with strict immigration rules?",
+    category: "World Cup",
+    time: "4h",
+    description: "The 2026 World Cup will be held across countries with different visa and immigration systems, creating questions about access for fans, teams, and officials. Supporters of stricter host standards say FIFA should protect participation. Opponents say immigration policy is a national decision."
+  }),
+  seedThread({
+    id: "rights-groups-fifa-inclusivity-2026",
+    title: "Rights groups warned FIFA about inclusivity at the 2026 World Cup. Should FIFA intervene?",
+    category: "World Cup",
+    time: "6h",
+    description: "Rights groups have urged FIFA to address concerns about discrimination, border access, and fan safety before the 2026 World Cup. Supporters say FIFA should set clear inclusivity requirements for hosts. Critics say the organization should avoid overstepping into domestic law and politics."
+  }),
+  seedThread({
+    id: "world-cup-expanded-48-teams",
+    title: "The World Cup expanded to 48 teams. Is bigger actually better?",
+    category: "World Cup",
+    time: "8h",
+    description: "The 2026 World Cup will expand from 32 to 48 teams, adding more matches and more national representation. Supporters say the format gives more countries and fans a chance to participate. Critics say expansion may dilute quality, strain players, and make the tournament harder to follow."
+  }),
+  seedThread({
+    id: "world-cup-ticket-demand-fan-priority",
+    title: "World Cup ticket demand was oversubscribed over 30 times. Should real fans get priority?",
+    category: "World Cup",
+    time: "10h",
+    description: "Early World Cup ticket demand has far exceeded available seats, with some reports describing applications many times above supply. Supporters of fan priority say long-time supporters should not lose out to resellers or corporate buyers. Opponents say lotteries and open sales are simpler and fairer."
+  }),
+  seedThread({
+    id: "supreme-court-trump-haitians-syrians-protections",
+    title: "The US Supreme Court let Trump end protections for Haitians and Syrians. Is that fair?",
+    category: "Immigration",
+    time: "12h",
+    description: "The US Supreme Court allowed the Trump administration to end temporary protections for some Haitian and Syrian migrants while legal challenges continue. Supporters say temporary programs should not become permanent status. Critics say removing protections could expose people to unsafe conditions and family disruption."
+  }),
+  seedThread({
+    id: "uk-asylum-seekers-settlement-repayment",
+    title: "Should asylum seekers repay £10,000 before settling in the UK?",
+    category: "Immigration",
+    time: "14h",
+    description: "A UK proposal has suggested requiring some asylum seekers to repay support costs before gaining settlement. Supporters say repayment would reduce public costs and reassure taxpayers. Critics say it could trap low-income refugees in debt and make integration harder after protection is granted."
+  }),
+  seedThread({
+    id: "overwhelmed-borders-asylum-seekers",
+    title: "Should countries turn away asylum seekers when borders are overwhelmed?",
+    category: "Immigration",
+    time: "16h",
+    description: "Several countries have argued that asylum systems are under strain from rising arrivals, backlogs, and limited housing. Supporters of turning people away say governments must manage capacity and public services. Critics say international law requires access to asylum even during pressure."
+  }),
+  seedThread({
+    id: "eu-offshore-migrant-detention-centers",
+    title: "The EU backed offshore migrant detention centers. Necessary control or human rights abuse?",
+    category: "Immigration",
+    time: "18h",
+    description: "European leaders have discussed processing or holding some migrants in centers outside the EU to reduce irregular arrivals. Supporters say offshore systems could deter smugglers and restore border control. Critics warn such centers can weaken asylum rights, oversight, and humane treatment."
+  }),
+  seedThread({
+    id: "greece-faster-deportations-asylum",
+    title: "Greece approved faster deportations for rejected asylum seekers. Should Europe go harder?",
+    category: "Immigration",
+    time: "20h",
+    description: "Greece has moved to speed up returns for people whose asylum claims are rejected, part of a wider European focus on enforcement. Supporters say quicker deportations make the system credible. Critics say faster timelines can increase mistakes and reduce access to appeals."
+  }),
+  seedThread({
+    id: "us-mass-deportations-protests",
+    title: "Should the US carry out mass deportations even if it sparks protests?",
+    category: "Immigration",
+    time: "22h",
+    description: "US immigration enforcement plans have included wider deportation efforts, drawing protests in some cities and concern from immigrant communities. Supporters say the government must enforce removal orders and border rules. Critics say mass deportations can separate families, disrupt workplaces, and inflame public tension."
+  }),
+  seedThread({
+    id: "egg-companies-donate-price-fixing-claims",
+    title: "Egg companies will donate 53 million eggs after price-fixing claims. Is that enough?",
+    category: "Cost of Living",
+    time: "1d",
+    description: "Egg producers agreed to donate 53 million eggs as part of resolving claims linked to alleged price fixing. Supporters say food donations provide direct public benefit and help address high grocery costs. Critics say donations may not fully compensate consumers if prices were unfairly raised."
+  }),
+  seedThread({
+    id: "us-grocery-inflation-food-price-caps",
+    title: "US grocery inflation had its biggest jump since 2022. Should governments cap food prices?",
+    category: "Cost of Living",
+    time: "1d",
+    description: "US grocery prices have risen again, with some measures showing the sharpest increase since the inflation surge of 2022. Supporters of price caps say governments should protect households from essential food costs. Opponents say caps can create shortages, distort supply, and discourage investment."
+  }),
+  seedThread({
+    id: "mcdonalds-us-sales-fast-food-expensive",
+    title: "McDonald's missed US sales targets. Has fast food become too expensive?",
+    category: "Cost of Living",
+    time: "1d",
+    description: "McDonald's has reported weaker US sales as some customers reduce visits or trade down amid higher menu prices. Supporters of the pricing say restaurants face higher labor, rent, and ingredient costs. Critics say fast food is losing its appeal if value meals no longer feel affordable."
+  }),
+  seedThread({
+    id: "canada-grocery-control-supermarket-breakup",
+    title: "Canada says five companies control 75% of groceries. Should supermarkets be broken up?",
+    category: "Cost of Living",
+    time: "2d",
+    description: "Canada's grocery market is dominated by a small group of large retailers, raising concern about competition and food prices. Supporters of breaking up chains say concentration can limit choices and bargaining power. Opponents say scale helps supermarkets lower costs, manage supply chains, and keep shelves stocked."
+  }),
+  seedThread({
+    id: "japan-rice-prices-government-stocks",
+    title: "Japan's rice prices more than doubled since 2024. Should governments release stocks sooner?",
+    category: "Cost of Living",
+    time: "2d",
+    description: "Japan released government rice reserves after prices rose sharply from 2024 levels, pressuring households and restaurants. Supporters of earlier releases say public stocks should stabilize essential food prices. Critics say frequent releases can discourage farmers and interfere with market signals."
+  }),
+  seedThread({
+    id: "general-mills-profit-price-hikes-inflation",
+    title: "General Mills beat profit estimates after price hikes. Are food companies profiting from inflation?",
+    category: "Cost of Living",
+    time: "3d",
+    description: "General Mills has reported stronger-than-expected profit while shoppers continue to face higher packaged food prices. Supporters say price increases reflect higher input, shipping, and wage costs. Critics say strong profits suggest some food companies may be protecting margins while consumers absorb inflation."
+  })
 ];
 
 export const threads: Thread[] = seedThreads.map(({ seedComments: _seedComments, ...thread }) => thread);
