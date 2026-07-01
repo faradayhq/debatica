@@ -3,7 +3,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { ThreadCard } from "@/components/thread-card";
 import { mergeSeedThreads, threads } from "@/lib/data";
-import { useLanguage } from "@/components/language-provider";
 import { getSupabaseBrowserClient, isSupabaseConfigured } from "@/lib/supabase/client";
 import { fetchThreads } from "@/lib/supabase/data";
 import type { Thread } from "@/lib/data";
@@ -11,7 +10,6 @@ import { CategoryGrid } from "@/components/category-grid";
 import Link from "next/link";
 
 export default function Home() {
-  const { t } = useLanguage();
   const [supabaseThreads, setSupabaseThreads] = useState<Thread[] | null>(null);
   const [loading, setLoading] = useState(isSupabaseConfigured());
   const [loadError, setLoadError] = useState("");
@@ -50,17 +48,13 @@ export default function Home() {
       <h1 className="visually-hidden">Debatica debates</h1>
       <div className="home-layout">
       <div className="home-main">
-      <section className="home-intro" aria-label="Debatica introduction">
-        <p>{t("home.subtitle")}</p>
-      </section>
-
       {loading && <p className="data-status" role="status">Loading threads…</p>}
       {loadError && <p className="data-status error" role="alert">{loadError}</p>}
 
       <section className="content-section home-feed">
         <div className="sort-tabs home-sort" role="group" aria-label="Sort debates">
-          <button aria-pressed={sort === "new"} className={sort === "new" ? "active" : ""} onClick={() => setSort("new")}>{t("sort.new")}</button>
-          <button aria-pressed={sort === "popular"} className={sort === "popular" ? "active" : ""} onClick={() => setSort("popular")}>{t("sort.best")}</button>
+          <button aria-pressed={sort === "new"} className={sort === "new" ? "active" : ""} onClick={() => setSort("new")}>New</button>
+          <button aria-pressed={sort === "popular"} className={sort === "popular" ? "active" : ""} onClick={() => setSort("popular")}>Best</button>
         </div>
         <div className="thread-list">{sortedThreads.map((thread) => <ThreadCard thread={thread} key={thread.id} />)}</div>
       </section>

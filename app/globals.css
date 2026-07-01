@@ -160,7 +160,7 @@ button:disabled { cursor: not-allowed; }
 .sort-tabs button { border: 0; background: transparent; color: var(--muted); padding: 6px 9px; border-radius: 7px; font-size: 10px; }
 .sort-tabs button.active { background: #2b3135; color: var(--ink); box-shadow: none; }
 .search-sort { width: fit-content; margin: 0 0 10px; }
-.home-feed { padding-top: 8px; }
+.home-feed { padding-top: 12px; border-top: 0; }
 .home-sort { width: fit-content; margin: 0 0 12px; }
 .comment-list { display: grid; gap: 10px; }
 .comment-card { border-radius: 14px; padding: 15px; border: 1px solid var(--line); scroll-margin-top: 80px; }
@@ -732,7 +732,7 @@ button:disabled { cursor: not-allowed; }
   .home-layout { display: grid; grid-template-columns: minmax(0, 1fr) 310px; gap: 32px; max-width: 1080px; margin: 0 auto; padding: 26px 28px 0; }
   .home-main { min-width: 0; }
   .home-intro { min-height: 48px; padding: 0 0 14px; border-bottom: 1px solid var(--line); }
-  .home-feed { padding: 16px 0 0; border-top: 0; }
+  .home-feed { padding: 0; border-top: 0; }
   .home-feed .thread-card { padding-top: 11px; padding-bottom: 11px; }
   .desktop-sidebar { display: grid; align-content: start; gap: 14px; position: sticky; top: 88px; }
   .sidebar-panel { padding: 16px; border: 1px solid var(--line); border-radius: 14px; background: #15181a; }

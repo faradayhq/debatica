@@ -1,7 +1,7 @@
 "use client";
 
 import { createContext, useContext, useEffect, useMemo, useState } from "react";
-import { dictionaries, isLocale, LANGUAGE_STORAGE_KEY, type Locale, type TranslationKey } from "@/lib/i18n";
+import { dictionaries, LANGUAGE_STORAGE_KEY, type Locale, type TranslationKey } from "@/lib/i18n";
 
 type LanguageContextValue = {
   locale: Locale;
@@ -13,15 +13,6 @@ const LanguageContext = createContext<LanguageContextValue | null>(null);
 
 export function LanguageProvider({ children }: { children: React.ReactNode }) {
   const [locale, setLocaleState] = useState<Locale>("en");
-
-  useEffect(() => {
-    try {
-      const storedLocale = localStorage.getItem(LANGUAGE_STORAGE_KEY);
-      if (isLocale(storedLocale)) setLocaleState(storedLocale);
-    } catch {
-      // English remains the default when storage is unavailable.
-    }
-  }, []);
 
   useEffect(() => {
     document.documentElement.lang = locale;
