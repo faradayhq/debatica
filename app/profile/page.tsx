@@ -1,15 +1,13 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import Link from "next/link";
 import { GUEST_AGE_RANGES, GUEST_PROFILE_KEY, GUEST_PROFILE_PROMPT_SEEN_KEY, getOrCreateGuestIdentity, readGuestProfile } from "@/lib/guest-profile";
-import { SUPPORTED_LANGUAGES, type Locale } from "@/lib/i18n";
 import { useLanguage } from "@/components/language-provider";
 import { CountryPicker } from "@/components/country-picker";
 import { getCountryCode } from "@/lib/countries";
 
 export default function GuestProfilePage() {
-  const { locale, setLocale, t } = useLanguage();
+  const { t } = useLanguage();
   const [ageRange, setAgeRange] = useState("");
   const [country, setCountry] = useState("");
   const [guestId, setGuestId] = useState("Guest");
@@ -57,12 +55,6 @@ export default function GuestProfilePage() {
         <h2 id="profile-details-title">{t("profile.details")}</h2>
         <div className="profile-fields">
           <label>
-            <span>{t("language.label")}</span>
-            <select value={locale} onChange={(event) => setLocale(event.target.value as Locale)}>
-              {SUPPORTED_LANGUAGES.map((language) => <option key={language.locale} value={language.locale}>{language.label}</option>)}
-            </select>
-          </label>
-          <label>
             <span>{t("profile.age")}</span>
             <select value={ageRange} onChange={(event) => updateAgeRange(event.target.value)}>
               <option value="">{t("profile.private")}</option>
@@ -80,11 +72,6 @@ export default function GuestProfilePage() {
         </div>
       </section>
 
-      <Link href="/premium" className="premium-coming-soon" aria-label="Learn about Debatica Premium">
-        <span className="access-icon premium">P</span>
-        <div><span>PREMIUM</span><h2>Premium Coming Soon</h2><p>More profile and participation features are planned for a future release.</p></div>
-        <span className="premium-card-arrow" aria-hidden="true">→</span>
-      </Link>
     </div>
   );
 }

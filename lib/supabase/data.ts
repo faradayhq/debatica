@@ -77,17 +77,18 @@ function relativeTime(createdAt: string) {
 function mapThread(row: ThreadRow): Thread {
   const votes = Number(row.vote_count ?? 0);
   const agreeCount = Number(row.agree_count ?? 0);
-  const agree = votes ? Math.round((agreeCount / votes) * 100) : 50;
+  const agree = votes ? Math.round((agreeCount / votes) * 100) : 0;
   return {
     id: row.id,
     title: row.title,
     category: isCategory(row.category) ? row.category : "Society",
     ...(row.description && { description: row.description }),
     agree,
-    disagree: 100 - agree,
+    disagree: votes ? 100 - agree : 0,
     comments: Number(row.comment_count ?? 0),
     votes,
-    time: relativeTime(row.created_at)
+    time: relativeTime(row.created_at),
+    createdAt: row.created_at
   };
 }
 

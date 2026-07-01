@@ -1,15 +1,8 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import Link from "next/link";
-import { CategoryGrid } from "@/components/category-grid";
-import { AdPlaceholder } from "@/components/ad-placeholder";
-import { ThreadCard, VoteSplit } from "@/components/thread-card";
-import { Icon } from "@/components/icons";
-import { RecentlyViewedThreads } from "@/components/recently-viewed-threads";
-import { ReportButton } from "@/components/report-modal";
+import { useEffect, useMemo, useState } from "react";
+import { ThreadCard } from "@/components/thread-card";
 import { threads } from "@/lib/data";
-import { categoryTranslationKey } from "@/lib/i18n";
 import { useLanguage } from "@/components/language-provider";
 import { getSupabaseBrowserClient, isSupabaseConfigured } from "@/lib/supabase/client";
 import { fetchThreads } from "@/lib/supabase/data";
@@ -21,7 +14,23 @@ export default function Home() {
   const [loading, setLoading] = useState(isSupabaseConfigured());
   const [loadError, setLoadError] = useState("");
   const displayThreads = supabaseThreads?.length ? supabaseThreads : threads;
-  const featured = displayThreads[0];
+  const [sort, setSort] = useState<"new" | "popular">("new");
+  const sortedThreads = useMemo(() => {
+    if (sort === "new") {
+      return [...displayThreads].sort((a, b) => {
+        if (a.createdAt && b.createdAt) return Date.parse(b.createdAt) - Date.parse(a.createdAt);
+        return displayThreads.indexOf(a) - displayThreads.indexOf(b);
+      });
+    }
+    const popularity = (thread: Thread) => {
+      const ageHours = thread.createdAt
+        ? Math.max(0, (Date.now() - Date.parse(thread.createdAt)) / 3_600_000)
+        : Number.parseFloat(thread.time) * (thread.time.endsWith("d") ? 24 : thread.time.endsWith("h") ? 1 : 1 / 60);
+      const momentum = (thread.votes + thread.comments * 3) / Math.pow(ageHours + 2, 0.35);
+      return thread.votes + thread.comments * 3 + momentum * 5;
+    };
+    return [...displayThreads].sort((a, b) => popularity(b) - popularity(a));
+  }, [displayThreads, sort]);
 
   useEffect(() => {
     const client = getSupabaseBrowserClient();
@@ -45,43 +54,12 @@ export default function Home() {
       {loading && <p className="data-status" role="status">Loading threads…</p>}
       {loadError && <p className="data-status error" role="alert">{loadError}</p>}
 
-      <section className="today-card">
-        <div className="today-top"><span>{t("home.today")}</span><div className="today-status"><span className="live-dot">{t("home.live")}</span><ReportButton className="report-button report-button-light" targetType="thread" targetId={featured.id} threadId={featured.id} /></div></div>
-        <div className="today-content">
-          <span className="category-pill light">{t(categoryTranslationKey(featured.category))}</span>
-          <h2>{featured.title}</h2>
-          <p>{featured.description}</p>
-          <VoteSplit agree={featured.agree} disagree={featured.disagree} />
-          <Link href={`/thread/${featured.id}`} className="light-button">{t("home.enter")} <Icon name="arrow" size={18} /></Link>
+      <section className="content-section home-feed">
+        <div className="sort-tabs home-sort" role="group" aria-label="Sort debates">
+          <button aria-pressed={sort === "new"} className={sort === "new" ? "active" : ""} onClick={() => setSort("new")}>New</button>
+          <button aria-pressed={sort === "popular"} className={sort === "popular" ? "active" : ""} onClick={() => setSort("popular")}>Popular</button>
         </div>
-      </section>
-
-      <RecentlyViewedThreads className="home-recently-viewed" />
-
-      <section className="content-section">
-        <div className="section-heading"><div><span className="section-index">01</span><h2>{t("home.hot")}</h2></div><Link href="/search">{t("home.seeAll")} <Icon name="chevron" size={15} /></Link></div>
-        <div className="thread-list">{displayThreads.slice(1, 4).map((thread, i) => <ThreadCard thread={thread} rank={i + 1} key={thread.id} />)}</div>
-        <AdPlaceholder />
-      </section>
-
-      <section className="content-section tinted-section">
-        <div className="section-heading"><div><span className="section-index">02</span><h2>{t("home.active")}</h2></div><span className="section-note">{t("home.momentum")}</span></div>
-        <div className="horizontal-threads">{displayThreads.slice(3, 6).map((thread) => <ThreadCard thread={thread} key={thread.id} />)}</div>
-      </section>
-
-      <section className="content-section">
-        <div className="section-heading"><div><span className="section-index">03</span><h2>{t("home.closest")}</h2></div><span className="split-badge">≈ 50 / 50</span></div>
-        {displayThreads[5] ? <ThreadCard thread={displayThreads[5]} /> : <ThreadCard thread={featured} />}
-      </section>
-
-      <section className="content-section">
-        <div className="section-heading"><div><span className="section-index">04</span><h2>{t("home.latest")}</h2></div><Link href="/search">{t("home.seeAll")} <Icon name="chevron" size={15} /></Link></div>
-        <div className="thread-list">{displayThreads.slice(0, 3).map((thread) => <ThreadCard thread={thread} key={thread.id} />)}</div>
-      </section>
-
-      <section className="content-section categories-preview">
-        <div className="section-heading"><div><span className="section-index">05</span><h2>{t("home.categories")}</h2></div><Link href="/categories">{t("home.browseAll")} <Icon name="chevron" size={15} /></Link></div>
-        <CategoryGrid limit={6} />
+        <div className="thread-list">{sortedThreads.map((thread) => <ThreadCard thread={thread} key={thread.id} />)}</div>
       </section>
     </div>
   );

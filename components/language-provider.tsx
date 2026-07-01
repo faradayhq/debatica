@@ -15,8 +15,12 @@ export function LanguageProvider({ children }: { children: React.ReactNode }) {
   const [locale, setLocaleState] = useState<Locale>("en");
 
   useEffect(() => {
-    const storedLocale = localStorage.getItem(LANGUAGE_STORAGE_KEY);
-    if (isLocale(storedLocale)) setLocaleState(storedLocale);
+    try {
+      const storedLocale = localStorage.getItem(LANGUAGE_STORAGE_KEY);
+      if (isLocale(storedLocale)) setLocaleState(storedLocale);
+    } catch {
+      // English remains the default when storage is unavailable.
+    }
   }, []);
 
   useEffect(() => {

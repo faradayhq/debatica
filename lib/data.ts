@@ -23,6 +23,7 @@ export type Thread = {
   comments: number;
   votes: number;
   time: string;
+  createdAt?: string;
 };
 
 export type CountryResult = {
@@ -31,224 +32,49 @@ export type CountryResult = {
   agree: number;
 };
 
-type SeedCommentTuple = [side: "agree" | "disagree" | "neutral", text: string, positiveVotes: number, negativeVotes: number];
+type SeedCommentTuple = [side: "agree" | "disagree" | "neutral", text: string];
 type SeedThread = Thread & { seedComments: SeedCommentTuple[] };
 
-function seedThread(id: string, title: string, category: Category, agree: number, votes: number, comments: number, time: string, seedComments: SeedCommentTuple[], description?: string): SeedThread {
-  return { id, title, category, description, agree, disagree: 100 - agree, votes, comments, time, seedComments };
+function seedThread(id: string, title: string, category: Category, time: string, description: string, seedComments: SeedCommentTuple[]): SeedThread {
+  return { id, title, category, description, agree: 0, disagree: 0, votes: 0, comments: seedComments.length, time, seedComments };
 }
 
 const seedThreads: SeedThread[] = [
-  seedThread("remote-work", "Remote work should be the default for office jobs", "Work & Business", 68, 1240, 184, "2h", [
-    ["agree", "The office should be a resource, not an obligation. Focused work is much easier for me at home.", 42, 4],
-    ["disagree", "Early-career staff lose informal learning when nobody is around. Team-level flexibility is a better default.", 31, 8],
-    ["neutral", "The real issue is whether companies measure outcomes or attendance. Either setup fails without clear expectations.", 27, 2]
-  ], "Companies should need a clear reason to require office attendance—not the other way around."),
-  seedThread("ai-education", "Schools should teach students how to use AI tools", "Education", 81, 736, 96, "38m", [
-    ["agree", "Students need to learn verification and responsible use before these tools become invisible parts of everyday work.", 38, 3],
-    ["disagree", "Basic writing and research habits should be secure first. Introducing AI too early can hide gaps in understanding.", 24, 9],
-    ["neutral", "Teach it alongside source checking and require students to explain which parts were assisted.", 33, 1]
-  ]),
-  seedThread("four-day-week", "The four-day workweek will become the norm", "Work & Business", 55, 512, 73, "1h", [
-    ["agree", "Teams that cut low-value meetings can often preserve output while giving people a real recovery day.", 29, 5],
-    ["disagree", "It fits some office roles, but customer support and healthcare cannot simply compress demand into four days.", 26, 4],
-    ["neutral", "The key distinction is reduced hours versus four longer days. Those are very different proposals.", 35, 1]
-  ]),
-  seedThread("cashless", "A fully cashless society would do more harm than good", "Money", 49, 889, 121, "3h", [
-    ["agree", "Cash is still a useful fallback during outages and for people who cannot easily access banking.", 44, 6],
-    ["disagree", "Digital payments are faster and easier to audit. The accessibility problems can be solved without keeping cash forever.", 28, 13],
-    ["neutral", "Cashless convenience is valuable, but removing the option entirely creates avoidable resilience and privacy risks.", 39, 2]
-  ]),
-  seedThread("spoilers", "Spoilers do not actually ruin a good story", "Entertainment", 42, 403, 64, "5h", [
-    ["agree", "Knowing the destination sometimes makes the craft more visible, especially on a second viewing.", 20, 7],
-    ["disagree", "A carefully built reveal only works once. I want the choice to experience it without advance information.", 32, 4],
-    ["neutral", "It depends on the story. A mystery loses more than a character-driven drama when the ending is known.", 37, 1]
-  ]),
-  seedThread("college", "A college degree is still worth the cost", "Education", 51, 1560, 207, "6h", [
-    ["agree", "For fields with structured training and credentials, the degree still opens doors that are difficult to reach otherwise.", 41, 8],
-    ["disagree", "The value varies too much by price and subject to make a broad claim. Debt can erase the salary advantage.", 45, 5],
-    ["neutral", "Students need transparent completion, employment, and debt data for each program rather than one national average.", 52, 2]
-  ]),
+  // World Cup
+  seedThread("japanese-fans-clean-world-cup-stadiums", "Should Japanese fans clean stadiums after World Cup matches?", "Sports", "12m", "A celebrated fan tradition raises questions about respect, choice, and stadium work.", [["agree", "Leaving the stands clean is a simple way to thank the host city."], ["disagree", "Fans should clear their own rubbish, but nobody should expect them to clean the venue."], ["neutral", "It is positive when it stays voluntary rather than becoming an obligation."]]),
+  seedThread("var-football-excitement", "Is VAR making football less exciting?", "Sports", "24m", "Video reviews improve accuracy but can interrupt the emotion of a goal.", [["agree", "Long checks make supporters hesitate before celebrating."], ["disagree", "A short delay is worth it when a major decision can be corrected."], ["neutral", "VAR needs faster reviews and clearer limits, not complete removal."]]),
+  seedThread("penalty-shootouts-knockout-matches", "Should penalty shootouts decide knockout matches?", "Sports", "37m", "Shootouts produce drama, but critics question whether they fairly decide a team match.", [["agree", "After extra time, penalties are the clearest practical way to find a winner."], ["disagree", "A shootout places too much of a team result on a few individual players."], ["neutral", "Penalties are imperfect, but the alternatives could make matches dangerously long."]]),
+  seedThread("referees-explain-var-live", "Should referees explain VAR decisions live?", "Sports", "49m", "Live explanations could make disputed calls easier for fans to understand.", [["agree", "Supporters in the stadium deserve to know why a decision changed."], ["disagree", "Live explanations could add pressure and slow the match even more."], ["neutral", "A brief factual announcement would be enough without creating a debate."]]),
+  seedThread("longer-suspensions-for-diving", "Should diving receive longer suspensions?", "Sports", "1h", "Stronger punishment could discourage players from trying to deceive officials.", [["agree", "A meaningful suspension would make diving a much less attractive risk."], ["disagree", "Slow motion often makes ordinary contact look more deliberate than it was."], ["neutral", "Only clear cases reviewed after the match should receive extra punishment."]]),
+  seedThread("football-fans-toxic-social-media", "Are football fans too toxic on social media?", "Sports", "1h", "Online rivalry often moves from passionate criticism into personal abuse.", [["agree", "Players and other fans receive abuse that would never be acceptable offline."], ["disagree", "The worst accounts are loud, but they do not represent most supporters."], ["neutral", "Rivalry is part of football, while threats and targeted abuse are not."]]),
+  seedThread("winning-over-entertaining-football", "Should teams prioritize winning over entertaining football?", "Sports", "2h", "Results bring trophies, while supporters also pay to enjoy how the game is played.", [["agree", "Professional teams are ultimately judged by results and trophies."], ["disagree", "Football loses something important when every match becomes purely defensive."], ["neutral", "The best teams should aim for results without abandoning ambition entirely."]]),
+  seedThread("players-criticized-after-bad-match", "Should players be criticized online after a bad match?", "Sports", "2h", "Performance analysis can quickly turn into a personal pile-on after a loss.", [["agree", "Respectful criticism is a normal part of following professional sport."], ["disagree", "Tagging a player immediately after a mistake often becomes harassment."], ["neutral", "Critique the performance without attacking the person or their family."]]),
+  seedThread("international-vs-club-football-emotion", "Is international football more emotional than club football?", "Sports", "3h", "National tournaments create rare shared moments, while club loyalties run all year.", [["agree", "Representing a country gives major matches a unique emotional weight."], ["disagree", "Weekly club football builds a deeper bond over many years."], ["neutral", "International football peaks higher, but club football is more consistently personal."]]),
+  seedThread("fifa-racist-fan-punishments", "Should FIFA punish racist fan behavior more harshly?", "Sports", "4h", "The debate is whether current fines and warnings meaningfully deter racist abuse.", [["agree", "Small fines do not match the harm, so sporting penalties should be possible."], ["disagree", "Collective punishments can hurt many supporters who did nothing wrong."], ["neutral", "Sanctions should be strong, consistent, and targeted at repeat failures."]]),
 
-  seedThread("quiet-carriages", "Public transport should have more quiet carriages", "Society", 74, 318, 42, "47m", [
-    ["agree", "A predictable quiet space would help commuters, parents with sleeping children, and people sensitive to noise.", 26, 2],
-    ["disagree", "On crowded routes it would be difficult to enforce and could create conflict over ordinary conversation.", 15, 6],
-    ["neutral", "It makes sense on longer trips, but probably not on short urban lines where people constantly board and leave.", 22, 1]
-  ]),
-  seedThread("community-events", "Cities should fund more free neighborhood events", "Society", 79, 264, 35, "4h", [
-    ["agree", "Small recurring events make it easier to meet neighbors without having to buy something or join a club.", 24, 1],
-    ["disagree", "Local groups can organize these themselves. City budgets should prioritize services with clearer measurable benefits.", 12, 7],
-    ["neutral", "Funding should be modest and distributed across neighborhoods rather than concentrated in a city-center festival.", 19, 2]
-  ]),
-  seedThread("library-hours", "Public libraries should stay open later on weekdays", "Society", 83, 447, 58, "8h", [
-    ["agree", "People working standard hours barely have time to use libraries before closing, especially with a commute.", 31, 2],
-    ["disagree", "Later hours require staffing money that might be better spent on weekend access or a stronger digital collection.", 14, 5],
-    ["neutral", "A few late nights each week could meet demand without extending every branch every day.", 27, 1]
-  ]),
-  seedThread("phone-free-events", "Concerts should offer phone-free seating areas", "Society", 61, 529, 76, "11h", [
-    ["agree", "An optional section would let people enjoy an unobstructed view without dictating how the entire audience behaves.", 30, 4],
-    ["disagree", "People use phones for accessibility, safety, and memories. Separate sections could be awkward to manage.", 21, 8],
-    ["neutral", "The word optional matters. A choice is reasonable; locking every phone away is a different policy.", 34, 2]
-  ]),
+  // Society
+  seedThread("cost-of-living-unbearable", "Is the cost of living becoming unbearable?", "Money", "6h", "Housing, food, and energy costs are rising faster than many household incomes.", [["agree", "Even careful budgeting no longer covers basic costs for many workers."], ["disagree", "The pressure is real, but it varies too much by place and household to generalize."], ["neutral", "Wages and essential costs matter more than headline inflation alone."]]),
+  seedThread("countries-reduce-immigration", "Should countries reduce immigration?", "Society", "8h", "Governments must balance workforce needs, public services, and integration capacity.", [["agree", "Intake should match the housing and services a country can realistically provide."], ["disagree", "Many economies need newcomers to fill jobs and support aging populations."], ["neutral", "Better planning and legal pathways matter more than a simple higher or lower target."]]),
+  seedThread("governments-build-public-housing", "Should governments build more public housing?", "Society", "10h", "Public construction could expand affordable supply where private markets fall short.", [["agree", "Stable housing is essential infrastructure, and the market is not delivering enough."], ["disagree", "Slow approvals and construction costs should be fixed before expanding public programs."], ["neutral", "Public housing can help if it is well located, maintained, and mixed with other homes."]]),
+  seedThread("ai-replace-entry-level-jobs", "Should AI replace entry-level jobs?", "Technology", "12h", "Automation may increase productivity while removing roles where people begin their careers.", [["agree", "Routine work should be automated when people can move into more useful roles."], ["disagree", "Removing junior jobs also removes the main path for learning professional skills."], ["neutral", "AI should assist entry-level workers rather than eliminate the position entirely."]]),
+  seedThread("university-free", "Should university be free?", "Education", "14h", "Tuition-free study could widen access but requires substantial public funding.", [["agree", "Ability to study should not depend on whether a family can afford tuition."], ["disagree", "Public funding should prioritize students who need support rather than every degree."], ["neutral", "Affordable tuition and income-based support may be more sustainable than a blanket policy."]]),
+  seedThread("push-back-on-tipping-culture", "Should tipping culture be pushed back?", "Money", "16h", "Customers increasingly face tip prompts in places that once used fixed prices.", [["agree", "Businesses should pay transparent wages instead of shifting responsibility to customers."], ["disagree", "Good service workers can earn more through tips than a standard hourly wage."], ["neutral", "Tips should remain optional and never replace a fair base wage."]]),
+  seedThread("smartphones-banned-in-schools", "Should smartphones be banned in schools?", "Education", "18h", "Phone restrictions may improve attention but can limit useful access and family contact.", [["agree", "Lessons are easier when every notification is not competing for attention."], ["disagree", "Schools should teach responsible use rather than pretend phones do not exist."], ["neutral", "Keep phones away during class while allowing access at defined times."]]),
+  seedThread("social-media-age-verification", "Should social media require age verification?", "Technology", "20h", "Stronger checks could protect children but may require users to share sensitive identity data.", [["agree", "Age rules mean little when platforms make no serious attempt to enforce them."], ["disagree", "Uploading identity documents creates privacy and security risks for everyone."], ["neutral", "Verification should confirm age without storing a user's full identity."]]),
+  seedThread("regulate-ai-companions", "Should governments regulate AI companions?", "Technology", "22h", "Emotionally responsive chatbots can influence vulnerable users without clear safeguards.", [["agree", "Products designed to build emotional dependence need basic safety standards."], ["disagree", "Adults should be free to use conversational tools without government approval."], ["neutral", "Rules should focus on minors, disclosure, and crisis responses rather than banning the technology."]]),
+  seedThread("remote-work-company-culture", "Is remote work hurting company culture?", "Work & Business", "1d", "Distributed work offers flexibility but changes how teams build trust and share knowledge.", [["agree", "New employees miss many informal conversations that help them learn and connect."], ["disagree", "A healthy culture comes from good management, not mandatory office attendance."], ["neutral", "Remote work succeeds when teams deliberately create time for collaboration and mentoring."]]),
 
-  seedThread("election-holiday", "National elections should be public holidays", "Politics", 71, 683, 88, "2h", [
-    ["agree", "Removing a workday barrier would make participation easier, especially for people with inflexible schedules.", 36, 5],
-    ["disagree", "Many service workers would still work. Expanded early voting may solve access more evenly than a holiday.", 29, 7],
-    ["neutral", "A holiday helps only when paired with enough polling places, mail options, and paid time for essential workers.", 40, 2]
-  ]),
-  seedThread("local-budget-dashboard", "Local governments should publish simple public budget dashboards", "Politics", 88, 355, 39, "7h", [
-    ["agree", "Residents should not need accounting expertise to understand where local taxes are being spent.", 33, 1],
-    ["disagree", "Simplified dashboards can remove context and make routine spending look suspicious when it is not.", 10, 6],
-    ["neutral", "Publish both: an accessible summary linked directly to the detailed source documents and definitions.", 28, 1]
-  ]),
-  seedThread("online-consultations", "Public consultations should always include an online option", "Politics", 84, 291, 31, "13h", [
-    ["agree", "Evening meetings exclude caregivers, shift workers, and anyone who cannot travel to city hall.", 25, 2],
-    ["disagree", "Online responses can be flooded by organized groups and may not represent residents any better.", 11, 5],
-    ["neutral", "Use online submissions as one channel, with residency checks and a published summary of all feedback.", 21, 1]
-  ]),
-  seedThread("local-term-limits", "Large cities should have term limits for mayors", "Politics", 54, 472, 67, "1d", [
-    ["agree", "Regular turnover reduces the advantage of incumbency and makes room for new leadership.", 22, 7],
-    ["disagree", "Voters should be able to keep an effective mayor. Elections already provide a mechanism for removal.", 25, 5],
-    ["neutral", "Long limits may balance continuity and competition better than either unlimited terms or rapid turnover.", 28, 2]
-  ]),
-
-  seedThread("salary-ranges", "Job listings should always include a salary range", "Work & Business", 91, 1120, 143, "25m", [
-    ["agree", "A range saves time for both sides and reduces the information advantage employers hold during negotiation.", 58, 2],
-    ["disagree", "For flexible senior roles the final scope can change substantially depending on the candidate.", 16, 11],
-    ["neutral", "Wide ranges are not useful. Listings should also explain what experience places someone at each end.", 43, 3]
-  ]),
-  seedThread("meeting-free-day", "Every company should protect one meeting-free day each week", "Work & Business", 76, 645, 82, "9h", [
-    ["agree", "A shared focus day is more effective than everyone blocking different hours that are constantly overridden.", 39, 3],
-    ["disagree", "Global teams and customer-facing roles cannot guarantee the same quiet day every week.", 18, 8],
-    ["neutral", "Teams should try it as a default with explicit exceptions rather than treating it as an absolute rule.", 30, 1]
-  ]),
-
-  seedThread("split-bills", "Friends should split shared restaurant bills by what each person ordered", "Money", 67, 508, 72, "3h", [
-    ["agree", "It avoids quietly making people who ordered less subsidize expensive drinks or dishes they did not choose.", 34, 3],
-    ["disagree", "For close friends, calculating every item can make a relaxed meal feel unnecessarily transactional.", 19, 8],
-    ["neutral", "Split evenly when costs are similar, and itemize when there is a meaningful difference. Context solves most of this.", 36, 1]
-  ]),
-  seedThread("subscriptions", "Subscription services should make cancellation as easy as signup", "Money", 94, 980, 118, "6h", [
-    ["agree", "If signup takes one screen, cancellation should not require a phone call during limited business hours.", 61, 1],
-    ["disagree", "Companies need a chance to confirm identity and explain what access or data will be lost.", 9, 14],
-    ["neutral", "A clear confirmation step is reasonable; hidden menus and retention mazes are not.", 48, 1]
-  ]),
-  seedThread("emergency-fund", "Building an emergency fund should come before investing", "Money", 72, 374, 49, "16h", [
-    ["agree", "A cash buffer prevents a routine surprise from turning into high-interest debt or a forced asset sale.", 29, 2],
-    ["disagree", "Waiting for a large target can mean missing years of employer matching and compound growth.", 17, 7],
-    ["neutral", "A small starter fund and matched retirement contributions can happen together before building a larger reserve.", 31, 1]
-  ]),
-
-  seedThread("read-receipts", "Turning off read receipts makes messaging less stressful", "Relationships", 69, 286, 44, "52m", [
-    ["agree", "It removes the expectation that seeing a message creates an obligation to answer immediately.", 23, 2],
-    ["disagree", "For plans and practical coordination, knowing a message was seen can reduce uncertainty rather than add pressure.", 14, 6],
-    ["neutral", "The healthiest approach is agreeing on expectations instead of trying to infer meaning from a tiny status indicator.", 26, 1]
-  ]),
-  seedThread("shared-calendars", "Couples should use a shared calendar for household plans", "Relationships", 78, 331, 37, "5h", [
-    ["agree", "It prevents one person from becoming the default keeper of every appointment and social commitment.", 27, 2],
-    ["disagree", "Not every plan needs to be coordinated, and a shared calendar can start to feel like monitoring.", 12, 6],
-    ["neutral", "Use it for genuinely shared obligations while keeping personal schedules private by default.", 22, 1]
-  ]),
-  seedThread("friendship-cancellations", "Canceling plans because you need rest should be socially acceptable", "Relationships", 86, 624, 91, "10h", [
-    ["agree", "Rest is a legitimate need, and honest cancellation is better than arriving resentful or exhausted.", 42, 3],
-    ["disagree", "Frequent last-minute cancellations shift the cost to other people and can damage trust regardless of the reason.", 25, 9],
-    ["neutral", "It is acceptable when communicated early and balanced with making a real effort to reschedule.", 38, 1]
-  ]),
-  seedThread("group-chat-etiquette", "Important decisions should not be made only in group chats", "Relationships", 64, 248, 33, "1d", [
-    ["agree", "Fast-moving chats bury context and make silence look like agreement even when people missed the discussion.", 22, 2],
-    ["disagree", "For many friend groups, chat is the only place where everyone can participate asynchronously.", 13, 5],
-    ["neutral", "Use chat to discuss, then summarize the decision clearly and give everyone a final chance to respond.", 25, 1]
-  ]),
-
-  seedThread("right-to-repair", "People should have a right to repair the devices they buy", "Technology", 89, 1370, 156, "1h", [
-    ["agree", "Repair manuals and replacement parts would extend device life and give local shops a fair chance to compete.", 63, 2],
-    ["disagree", "Poor repairs can create safety and security risks, especially for batteries and connected devices.", 18, 12],
-    ["neutral", "Access should come with clear safety standards, parts labeling, and no requirement for manufacturers to support unsafe modifications.", 47, 3]
-  ]),
-  seedThread("default-notifications", "Apps should ship with most notifications turned off", "Technology", 82, 748, 102, "4h", [
-    ["agree", "Alerts should earn attention through explicit choice rather than enabling every category during installation.", 45, 2],
-    ["disagree", "New users may miss useful features or important security notices if defaults are too quiet.", 15, 9],
-    ["neutral", "Keep security and direct-message alerts on, then ask users which promotional or activity updates they want.", 40, 1]
-  ]),
-  seedThread("smart-home-offline", "Smart-home devices should keep basic functions when the internet is down", "Technology", 96, 905, 87, "7h", [
-    ["agree", "Lights, locks, and thermostats should not depend on a remote server for basic local controls.", 57, 1],
-    ["disagree", "Some advanced features inherently need cloud processing, and fully local hardware can raise prices.", 8, 13],
-    ["neutral", "Core controls should be local while optional automation and remote access can depend on connectivity.", 44, 1]
-  ]),
-  seedThread("algorithm-controls", "Social feeds should offer a simple chronological mode", "Technology", 87, 1195, 134, "12h", [
-    ["agree", "People should be able to see accounts they chose to follow without an algorithm constantly rearranging them.", 59, 3],
-    ["disagree", "Chronological feeds become noisy quickly and can bury the most relevant posts during busy periods.", 17, 10],
-    ["neutral", "Both modes can coexist if the app remembers the user’s choice instead of repeatedly resetting it.", 51, 1]
-  ]),
-
-  seedThread("episode-drops", "Streaming shows are better when episodes release weekly", "Entertainment", 58, 694, 98, "2h", [
-    ["agree", "A weekly rhythm gives each episode room for discussion and stops a season from disappearing in one weekend.", 34, 6],
-    ["disagree", "Binge releases let viewers set their own pace instead of waiting because of a marketing schedule.", 31, 5],
-    ["neutral", "Two or three episodes at launch followed by weekly releases is a good compromise for many shows.", 39, 1]
-  ]),
-  seedThread("movie-intermissions", "Long movies should include an intermission", "Entertainment", 73, 436, 61, "9h", [
-    ["agree", "Anything approaching three hours should provide a planned break rather than making people choose a random scene to miss.", 30, 3],
-    ["disagree", "A forced pause can break tension and filmmakers already design the runtime as one continuous experience.", 18, 7],
-    ["neutral", "Cinemas could advertise selected intermission screenings while still offering uninterrupted showings.", 28, 1]
-  ]),
-  seedThread("game-difficulty", "Every video game should include flexible difficulty options", "Entertainment", 77, 821, 109, "18h", [
-    ["agree", "Options let more people experience a game without preventing anyone from choosing the intended challenge.", 48, 4],
-    ["disagree", "In some games, shared difficulty is central to the design and to the community’s common experience.", 23, 11],
-    ["neutral", "Accessibility settings and difficulty modes overlap, but they are not identical and should be discussed separately.", 36, 2]
-  ]),
-
-  seedThread("youth-sports-score", "Young children’s sports leagues should de-emphasize scores", "Sports", 62, 357, 53, "3h", [
-    ["agree", "Early programs should prioritize movement, teamwork, and learning skills before standings and trophies.", 27, 4],
-    ["disagree", "Children know who won anyway, and learning to handle competition can be healthy with good coaching.", 20, 6],
-    ["neutral", "Keep game scores but avoid season rankings for the youngest groups. That preserves structure without raising the stakes too far.", 29, 1]
-  ]),
-  seedThread("video-reviews", "More sports should use video review for major decisions", "Sports", 57, 603, 85, "6h", [
-    ["agree", "A short review is worth it when one clear mistake could decide an entire match.", 30, 5],
-    ["disagree", "Frequent reviews interrupt momentum and still produce arguments over subjective calls.", 28, 5],
-    ["neutral", "Limit reviews to objective questions and impose a strict time cap when evidence is inconclusive.", 37, 1]
-  ]),
-  seedThread("late-games", "Major sports events should avoid very late local start times", "Sports", 81, 489, 64, "14h", [
-    ["agree", "Families and local attendees should matter more than maximizing television audiences in distant time zones.", 35, 2],
-    ["disagree", "Broadcast revenue supports teams and leagues, and there is no start time that works for every audience.", 14, 8],
-    ["neutral", "Occasional late starts are understandable, but routine scheduling after normal family hours reduces access.", 30, 1]
-  ]),
-  seedThread("recreational-leagues", "Cities should invest more in adult recreational sports", "Sports", 75, 276, 38, "1d", [
-    ["agree", "Affordable leagues create exercise and social connection for adults who do not enjoy working out alone.", 25, 2],
-    ["disagree", "Public facilities should prioritize youth access before subsidizing organized activities for working adults.", 12, 6],
-    ["neutral", "Shared facilities and sliding fees can support both groups without treating the budget as strictly either-or.", 20, 1]
-  ]),
-
-  seedThread("financial-literacy", "Personal finance should be a required school subject", "Education", 92, 1480, 172, "32m", [
-    ["agree", "Students should practice reading a payslip, comparing loans, making a budget, and recognizing common scams.", 66, 2],
-    ["disagree", "A separate requirement may crowd the timetable when these skills could be integrated into mathematics and civics.", 17, 12],
-    ["neutral", "The delivery matters less than ensuring every student repeatedly applies the concepts to realistic decisions.", 49, 1]
-  ]),
-  seedThread("homework-weekends", "Schools should avoid assigning homework over weekends", "Education", 59, 541, 79, "8h", [
-    ["agree", "Students need predictable time for family, rest, hobbies, and responsibilities outside school.", 32, 5],
-    ["disagree", "Some courses need steady practice, and weekends can give students more control over when to complete it.", 24, 7],
-    ["neutral", "Long projects may span weekends, but routine assignments should be designed to fit within the school week.", 35, 1]
-  ]),
-
-  seedThread("morning-routines", "A consistent morning routine improves the rest of the day", "Lifestyle", 66, 392, 57, "1h", [
-    ["agree", "Removing small morning decisions gives me a calmer start and makes it easier to begin important work.", 27, 3],
-    ["disagree", "Rigid routines can become another source of guilt, especially for parents and people with changing shifts.", 19, 7],
-    ["neutral", "A few reliable anchors help, but the routine should be flexible enough to survive real life.", 30, 1]
-  ]),
-  seedThread("decluttering", "Owning fewer things generally makes life easier", "Lifestyle", 71, 468, 68, "5h", [
-    ["agree", "Less storage, cleaning, and searching creates real time savings beyond the visual appeal of minimalism.", 31, 3],
-    ["disagree", "Replacing discarded items later wastes money and resources. The issue is useful organization, not a low item count.", 22, 8],
-    ["neutral", "Keeping what is useful and meaningful is a better goal than chasing an arbitrary minimalist aesthetic.", 33, 1]
-  ]),
-  seedThread("meal-planning", "Planning meals for the week is worth the effort", "Lifestyle", 79, 583, 74, "12h", [
-    ["agree", "Even a loose plan reduces food waste and the repeated evening decision about what to cook.", 37, 2],
-    ["disagree", "Schedules and appetites change, so detailed plans can create waste when the week does not go as expected.", 17, 7],
-    ["neutral", "Choose a few flexible meals and shared ingredients rather than assigning a fixed dish to every night.", 34, 1]
-  ]),
-  seedThread("hobby-metrics", "Not every hobby needs goals or progress tracking", "Lifestyle", 84, 337, 46, "1d", [
-    ["agree", "A hobby can simply be pleasant. Turning everything into measurable improvement recreates the pressure of work.", 29, 2],
-    ["disagree", "Goals can deepen enjoyment and help people continue when the initial novelty fades.", 13, 6],
-    ["neutral", "Tracking is useful when it serves curiosity, but not when the tracking becomes the whole activity.", 25, 1]
-  ])
+  // Social media, relationships, and work culture
+  seedThread("posting-good-deeds-performative", "Is posting good deeds online performative?", "Lifestyle", "1d", "Public generosity can inspire others while also turning help into personal branding.", [["agree", "If filming comes first, attention is probably part of the goal."], ["disagree", "A visible act can still help someone and encourage more people to contribute."], ["neutral", "The result matters, but the person receiving help must be treated with dignity."]]),
+  seedThread("parents-use-children-for-content", "Should parents use their children for content?", "Society", "1d", "Family accounts can create income, but children cannot fully consent to a permanent audience.", [["agree", "Parents already share family life, and careful posts can be harmless."], ["disagree", "Children should not have their private lives turned into a business before they can consent."], ["neutral", "Occasional family updates are different from making a child the product."]]),
+  seedThread("punish-hidden-paid-promotions", "Should influencers be punished for hiding paid promotions?", "Entertainment", "1d", "Undisclosed sponsorships make advertising look like an independent recommendation.", [["agree", "Viewers deserve to know when money or gifts influenced a recommendation."], ["disagree", "Platforms should first make disclosure tools simpler and more consistent."], ["neutral", "Clear repeated violations deserve penalties, while honest mistakes can receive warnings."]]),
+  seedThread("delete-old-controversial-posts", "Should people delete old controversial posts?", "Lifestyle", "2d", "Removing past posts can reflect growth or appear to avoid accountability.", [["agree", "People should be allowed to remove views they no longer hold."], ["disagree", "Deleting evidence without acknowledging harm can erase important context."], ["neutral", "Delete when appropriate, but address serious posts openly if they affected others."]]),
+  seedThread("dating-apps-worse-relationships", "Are dating apps making relationships worse?", "Relationships", "2d", "Endless choice may encourage shallow decisions, while apps also connect people who might never meet.", [["agree", "Constant swiping makes people feel replaceable after the smallest disagreement."], ["disagree", "Apps are only a way to meet; relationship quality still depends on the people involved."], ["neutral", "They expand opportunity but need healthier expectations and boundaries."]]),
+  seedThread("men-pay-first-date", "Should men always pay on the first date?", "Relationships", "2d", "Traditional expectations around the first bill increasingly conflict with modern ideas of equality.", [["agree", "Offering to pay can still be a thoughtful and appreciated gesture."], ["disagree", "A gender rule is outdated; both people should be ready to contribute."], ["neutral", "The person who invited the other can offer, without turning payment into a test."]]),
+  seedThread("ghosting-ever-acceptable", "Is ghosting ever acceptable?", "Relationships", "3d", "Ending contact without explanation may protect safety but often leaves the other person confused.", [["agree", "No explanation is owed when someone is threatening, manipulative, or ignores boundaries."], ["disagree", "In ordinary situations, a short honest message is kinder than disappearing."], ["neutral", "Safety comes first, but discomfort alone is usually not a reason to vanish."]]),
+  seedThread("forty-years-one-company", "Is staying at one company for 40 years admirable?", "Work & Business", "3d", "Long service can show commitment, though loyalty does not always bring fair rewards.", [["agree", "Deep expertise and lasting workplace relationships deserve respect."], ["disagree", "Length of service means little if a person stopped learning or was underpaid."], ["neutral", "It is admirable when staying remains an active choice rather than fear of change."]]),
+  seedThread("employees-discuss-salary-openly", "Should employees be allowed to discuss salary openly?", "Work & Business", "3d", "Pay transparency can expose unfair gaps while creating difficult comparisons between roles.", [["agree", "Workers negotiate more fairly when salary information is not hidden."], ["disagree", "Raw numbers can create resentment without context about duties and experience."], ["neutral", "Discussion should be protected, voluntary, and include total compensation where possible."]]),
+  seedThread("hustle-culture-toxic", "Is hustle culture becoming toxic?", "Work & Business", "4d", "Constant productivity messaging can reward ambition while normalizing exhaustion.", [["agree", "Treating rest as weakness turns burnout into a status symbol."], ["disagree", "Working intensely toward a chosen goal is not automatically unhealthy."], ["neutral", "Ambition is useful when people can set limits without shame."]])
 ];
 
 export const threads: Thread[] = seedThreads.map(({ seedComments: _seedComments, ...thread }) => thread);
@@ -257,7 +83,7 @@ function clampPercent(value: number) {
   return Math.max(5, Math.min(95, value));
 }
 
-export const countryBreakdowns: Record<string, CountryResult[]> = Object.fromEntries(threads.map((thread, index) => [thread.id, [
+export const countryBreakdowns: Record<string, CountryResult[]> = Object.fromEntries(threads.filter((thread) => thread.votes > 0).map((thread, index) => [thread.id, [
   { country: "Japan", flag: "🇯🇵", agree: clampPercent(thread.agree + (index % 9) - 4) },
   { country: "United States", flag: "🇺🇸", agree: clampPercent(thread.agree + (index % 7) - 3) },
   { country: "United Kingdom", flag: "🇬🇧", agree: clampPercent(thread.agree + (index % 5) - 2) },
@@ -320,17 +146,17 @@ const COMMENT_TIME_SETS = [
 
 export const commentsByThread: Record<string, Comment[]> = Object.fromEntries(seedThreads.map((thread, threadIndex) => [
   thread.id,
-  thread.seedComments.map(([side, text, positiveVotes, negativeVotes], commentIndex) => ({
+  thread.seedComments.map(([side, text], commentIndex) => ({
     id: (threadIndex + 1) * 100 + commentIndex + 1,
     number: commentIndex + 1,
     author: SEED_GUEST_IDS[(threadIndex * 3 + commentIndex) % SEED_GUEST_IDS.length],
     side,
     text,
-    score: positiveVotes - negativeVotes,
-    positiveVotes,
-    negativeVotes,
+    score: 0,
+    positiveVotes: 0,
+    negativeVotes: 0,
     time: COMMENT_TIME_SETS[threadIndex % COMMENT_TIME_SETS.length][commentIndex]
   }))
 ]));
 
-export const comments = commentsByThread["remote-work"];
+export const comments = commentsByThread["japanese-fans-cleaning-stadiums"];

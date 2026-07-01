@@ -21,9 +21,7 @@ export function BottomNav() {
       {items.map((item) => {
         const active = item.href === "/"
           ? path === "/"
-          : item.href === "/profile"
-            ? path.startsWith("/profile") || path.startsWith("/premium")
-            : path.startsWith(item.href);
+          : path.startsWith(item.href);
 
         const className = `${active ? "active" : ""} ${item.primary ? "create-nav" : ""}`;
         const content = (

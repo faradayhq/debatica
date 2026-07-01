@@ -18,6 +18,9 @@ import { useLanguage } from "./language-provider";
 import { getCountryByValue } from "@/lib/countries";
 import { getSupabaseBrowserClient } from "@/lib/supabase/client";
 import { createComment, createReport, fetchComments, fetchGuestVote, fetchVoteCounts, saveGuestVote, writeErrorMessage } from "@/lib/supabase/data";
+import { BrowserTranslatedContent } from "./browser-translated-content";
+import { formatCompactCount } from "@/lib/format-count";
+import { AnimatedNumber } from "./animated-number";
 
 const COMMENT_VOTES_KEY = "debaticaCommentVotes";
 type CommentVote = "positive" | "negative";
@@ -57,8 +60,6 @@ export function ThreadView({ thread }: { thread: Thread }) {
   const [countryPromptOpen, setCountryPromptOpen] = useState(false);
   const [commentVotes, setCommentVotes] = useState<CommentVotes>({});
   const [reportedCommentIds, setReportedCommentIds] = useState<Set<number>>(() => new Set());
-  const [translatedCommentIds, setTranslatedCommentIds] = useState<Set<number>>(() => new Set());
-  const [threadTranslated, setThreadTranslated] = useState(false);
   const [reportOpen, setReportOpen] = useState(false);
   const pendingComment = useRef<{ text: string; replyTo: number | null } | null>(null);
   const composerRef = useRef<HTMLDivElement>(null);
@@ -273,15 +274,6 @@ export function ThreadView({ thread }: { thread: Thread }) {
     }
   }
 
-  function toggleCommentTranslation(commentId: number) {
-    setTranslatedCommentIds((current) => {
-      const next = new Set(current);
-      if (next.has(commentId)) next.delete(commentId);
-      else next.add(commentId);
-      return next;
-    });
-  }
-
   function submitComment() {
     const text = comment.trim();
     if (!text || commentHasUrl || postingComment) return;
@@ -301,18 +293,26 @@ export function ThreadView({ thread }: { thread: Thread }) {
     }
   }
 
-  const totalVotes = voteCounts.agree + voteCounts.disagree;
-  const agreePercent = totalVotes ? Math.round(voteCounts.agree / totalVotes * 100) : 50;
+  function shareOnX() {
+    const text = `${thread.title}\n${window.location.href}\n\nWhat do you think?`;
+    window.open(`https://x.com/intent/post?text=${encodeURIComponent(text)}`, "_blank", "noopener,noreferrer");
+  }
 
   return (
     <div className="page thread-page">
       <Link href="/" className="back-link">{t("thread.back")}</Link>
       <article className="thread-hero">
         <div className="eyebrow-row"><span className="category-pill">{t(categoryTranslationKey(thread.category))}</span><span className="thread-hero-meta"><span>{t("thread.started", { time: thread.time })}</span><button className="report-button" onClick={() => setReportOpen(true)}>{t("action.report")}</button></span></div>
-        <h1>{thread.title}</h1>
-        {threadTranslated ? <p className="thread-description translation-placeholder">{t("thread.translationSoon")}</p> : thread.description && <p className="thread-description">{thread.description}</p>}
-        <button type="button" className="translation-button" aria-pressed={threadTranslated} onClick={() => setThreadTranslated((current) => !current)}>{t(threadTranslated ? "action.original" : "action.translate")}</button>
-        <VoteSplit agree={agreePercent} disagree={100 - agreePercent} />
+        <BrowserTranslatedContent segments={[
+          { as: "h1", text: thread.title },
+          ...(thread.description ? [{ as: "p" as const, className: "thread-description", text: thread.description }] : [])
+        ]} />
+        <VoteSplit agree={voteCounts.agree} disagree={voteCounts.disagree} animate />
+        <div className="thread-stats" aria-live="polite">
+          <span title={`${voteCounts.agree + voteCounts.disagree} votes`}><Icon name="vote" size={15} /> <AnimatedNumber value={voteCounts.agree + voteCounts.disagree} format={(count) => t("card.votes", { count: formatCompactCount(count) })} /></span>
+          <span title={`${allComments.length} comments`}><Icon name="comment" size={15} /> {t("thread.comments", { count: formatCompactCount(allComments.length) })}</span>
+          <button type="button" className="share-x-button" onClick={shareOnX}>{t("action.shareX")}</button>
+        </div>
         <p className="vote-prompt">{t("thread.votePrompt")}</p>
         <div className="vote-actions">
           <button disabled={voteSaving} aria-pressed={vote === "agree"} className={`agree-button ${vote === "agree" ? "selected" : ""}`} onClick={() => castVote("agree")}><span>✓</span> {t("thread.agree")}</button>
@@ -322,7 +322,7 @@ export function ThreadView({ thread }: { thread: Thread }) {
         {dataError && <p className="data-status error thread-data-status" role="alert">{dataError}</p>}
       </article>
 
-      <CountryPerspective thread={thread} />
+      {thread.votes > 0 && <CountryPerspective thread={thread} />}
       <AdPlaceholder className="thread-ad-placeholder" />
 
       <section className="comments-section">
@@ -336,15 +336,13 @@ export function ThreadView({ thread }: { thread: Thread }) {
             const profileLabel = [profileCountry && `${profileCountry.flag} ${profileCountry.name}`, item.profile?.ageRange].filter(Boolean).join(" · ");
             const commentVote = commentVotes[`comment-id-${item.id}`];
             const isReported = reportedCommentIds.has(item.id);
-            const isTranslated = translatedCommentIds.has(item.id);
             return <article id={`comment-${item.id}`} className={`comment-card ${item.side}`} key={item.id}>
               <div className="comment-head"><div className="avatar">{item.author.slice(0, 2).toUpperCase()}</div><div><div className="comment-author-line"><b>{item.author}</b>{item.number && <span className="comment-number">#{item.number}</span>}</div><span>{timeLabel} · <i>{item.side === "neutral" ? t("thread.noVote") : item.side}</i>{profileLabel && <> · <span className="comment-profile">{profileLabel}</span></>}</span></div><button className="report-button" disabled={isReported} onClick={() => reportComment(item.id)}>{t(isReported ? "action.reported" : "action.report")}</button></div>
               {item.replyTo && <div className="reply-anchor">↪ Reply to <b>#{item.replyTo}</b></div>}
-              <p className={isTranslated ? "translation-placeholder" : undefined}>{isTranslated ? t("thread.translationSoon") : item.text}</p>
+              <BrowserTranslatedContent segments={[{ text: item.text }]} buttonClassName="comment-translation-button" />
               <div className="comment-actions">
                 <span className="comment-score">{t("thread.points", { count: item.score })}</span>
                 {item.number && <button type="button" className="comment-reply-button" onClick={() => startReply(item.number!)}>{t("action.reply")}</button>}
-                <button type="button" className="translation-button comment-translation-button" aria-pressed={isTranslated} onClick={() => toggleCommentTranslation(item.id)}>{t(isTranslated ? "action.original" : "action.translate")}</button>
                 <div className="comment-votes" role="group" aria-label="Rate this comment">
                   <button type="button" className={`comment-vote positive ${commentVote === "positive" ? "selected" : ""}`} aria-label={`Support comment by ${item.author}`} aria-pressed={commentVote === "positive"} disabled={Boolean(commentVote)} onClick={() => voteOnComment(item.id, "positive")}><span aria-hidden="true">+</span> {item.positiveVotes + (commentVote === "positive" ? 1 : 0)}</button>
                   <button type="button" className={`comment-vote negative ${commentVote === "negative" ? "selected" : ""}`} aria-label={`Oppose comment by ${item.author}`} aria-pressed={commentVote === "negative"} disabled={Boolean(commentVote)} onClick={() => voteOnComment(item.id, "negative")}><span aria-hidden="true">−</span> {item.negativeVotes + (commentVote === "negative" ? 1 : 0)}</button>

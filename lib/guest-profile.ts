@@ -5,12 +5,9 @@ export const GUEST_PROFILE_KEY = "debaticaGuestProfile";
 export const GUEST_PROFILE_PROMPT_SEEN_KEY = "debaticaGuestProfilePromptSeen";
 export const GUEST_ID_KEY = "debaticaGuestId";
 
-export type GuestBadge = "premium" | "developer";
-
 export type GuestIdentity = {
   id: string;
   displayName: string;
-  badges: GuestBadge[];
   countryCode?: string;
 };
 
@@ -45,7 +42,7 @@ export function getOrCreateGuestIdentity(): GuestIdentity {
   }
   const country = readGuestProfile().country;
   const countryCode = getCountryCode(country);
-  return { id, displayName: `Guest #${id}`, badges: [], ...(countryCode && { countryCode }) };
+  return { id, displayName: `Guest #${id}`, ...(countryCode && { countryCode }) };
 }
 
 export function readGuestProfile(): GuestProfile {
