@@ -5,9 +5,10 @@ import { LanguageProvider } from "@/components/language-provider";
 import { SiteFooter } from "@/components/site-footer";
 import { ThreadTitleProvider } from "@/components/thread-title-provider";
 import { NotificationBell } from "@/components/notification-bell";
+import { siteUrl } from "@/lib/site";
 
 export const metadata: Metadata = {
-  metadataBase: new URL("https://debatica.com"),
+  metadataBase: new URL(siteUrl),
   manifest: "/manifest.webmanifest",
   title: {
     default: "Debatica — See where public opinion splits",
