@@ -60,7 +60,7 @@ type ReplyNotificationRow = {
 
 const RATE_LIMIT_MESSAGES = {
   thread: "You have reached the thread limit. Please try again in a few minutes.",
-  comment: "You are commenting too quickly. Please wait a minute and try again.",
+  comment: "Please wait 3 seconds before posting another comment.",
   report: "You have reached the report limit. Please try again in a few minutes."
 } as const;
 
@@ -74,6 +74,9 @@ export class RateLimitError extends Error {
 function throwWriteError(error: { message?: string; details?: string }, target: keyof typeof RATE_LIMIT_MESSAGES): never {
   const databaseMessage = `${error.message ?? ""} ${error.details ?? ""}`;
   if (databaseMessage.includes(`RATE_LIMIT:${target}`)) throw new RateLimitError(RATE_LIMIT_MESSAGES[target]);
+  if (databaseMessage.includes("DUPLICATE_COMMENT")) throw new RateLimitError("You already posted that comment. Please write something different.");
+  if (databaseMessage.includes("URL_NOT_ALLOWED")) throw new RateLimitError("URLs aren't allowed in comments.");
+  if (databaseMessage.includes("COMMENT_TOO_LONG")) throw new RateLimitError("Comments must be 500 characters or fewer.");
   throw error;
 }
 
@@ -114,14 +117,15 @@ function mapThread(row: ThreadRow): Thread {
   };
 }
 
-function mapComment(row: CommentRow): Comment {
+function mapComment(row: CommentRow, number?: number): Comment {
   const profile: GuestProfile = {
     ...(row.age_range && { ageRange: row.age_range }),
     ...(row.country_code && { country: row.country_code })
   };
   return {
     id: Number(row.id),
-    number: Number(row.id),
+    number,
+    guestId: row.guest_id,
     author: row.author_name,
     side: row.side,
     text: row.body,
@@ -129,6 +133,7 @@ function mapComment(row: CommentRow): Comment {
     positiveVotes: 0,
     negativeVotes: 0,
     time: relativeTime(row.created_at),
+    createdAt: row.created_at,
     ...(row.reply_to && { replyTo: Number(row.reply_to) }),
     ...(Object.keys(profile).length && { profile })
   };
@@ -174,7 +179,7 @@ export async function createThread(client: SupabaseClient, input: { title: strin
 export async function fetchComments(client: SupabaseClient, threadId: string) {
   const { data, error } = await client.from("comments").select("*").eq("thread_id", threadId).order("created_at", { ascending: true });
   if (error) throw error;
-  return (data as CommentRow[]).map(mapComment);
+  return (data as CommentRow[]).map((row, index) => mapComment(row, index + 1));
 }
 
 export async function createComment(client: SupabaseClient, input: {

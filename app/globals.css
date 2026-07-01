@@ -175,18 +175,25 @@ button:disabled { cursor: not-allowed; }
 .comment-card.agree { background: var(--sage); }
 .comment-card.disagree { background: var(--lavender); }
 .comment-card.neutral { background: var(--gray-card); }
+.comment-card.own { border-color: rgba(70,195,123,.72); box-shadow: inset 0 0 0 1px rgba(70,195,123,.15); }
 .comment-head { display: flex; align-items: center; }
 .avatar { width: 31px; height: 31px; border-radius: 10px; display: grid; place-items: center; background: #2c3236; color: #dce1e4; font: 500 9px "DM Mono", monospace; margin-right: 9px; }
 .comment-head > div:nth-child(2) { display: grid; gap: 2px; }
 .comment-head b { font-size: 11px; }
 .comment-author-line { display: flex; align-items: baseline; gap: 6px; }
 .comment-author-line .comment-number { color: var(--muted); font-size: 9px; font-weight: 700; }
+.comment-author-line .you-label { padding: 1px 5px; border-radius: 999px; background: rgba(70,195,123,.16); color: #72d99d; font-size: 8px; font-weight: 750; text-transform: uppercase; }
 .comment-head span { font-size: 9px; color: var(--muted); }
 .comment-head i { font-style: normal; text-transform: capitalize; }
+.comment-head .stance { display: inline-flex; padding: 1px 5px; border-radius: 999px; font-weight: 700; }
+.comment-head .stance.agree { background: rgba(70,195,123,.14); color: #72d99d; }
+.comment-head .stance.disagree { background: rgba(154,134,184,.18); color: #c0add5; }
 .comment-head .comment-profile { color: #c7ced4; }
 .comment-head > button { flex: 0 0 auto; margin-left: auto; border: 0; background: transparent; color: var(--muted); }
 .comment-head > .report-button:disabled { color: #78818a; text-decoration: none; opacity: 1; }
 .comment-card > p { margin: 14px 0; font-size: 13px; line-height: 1.55; }
+.comment-quote { display: inline; border: 0; padding: 0 2px; background: transparent; color: #72d99d; font: inherit; font-weight: 750; text-decoration: underline; text-underline-offset: 2px; cursor: pointer; }
+.comment-quote.missing { color: var(--muted); cursor: default; }
 .comment-card > .translation-button { margin: -5px 0 8px; }
 .comment-card > .translation-browser-help { margin: -1px 0 10px; }
 .reply-anchor { width: 100%; border: 0; border-left: 2px solid rgba(70,195,123,.55); background: rgba(255,255,255,.035); padding: 8px 9px; margin-top: 12px; border-radius: 0 7px 7px 0; color: var(--muted); font-size: 9px; text-align: left; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
@@ -230,8 +237,9 @@ button:disabled { cursor: not-allowed; }
 .composer-input-row textarea::placeholder { color: #8f99a2; opacity: 1; }
 .composer-input-row button { min-width: 55px; min-height: 34px; flex: 0 0 auto; border: 0; border-radius: 9px; padding: 0 11px; background: var(--sage-strong); color: #0c1710; font-size: 12px; font-weight: 700; }
 .composer-input-row button:disabled { background: #29332e; color: #68766e; }
-.composer-note { display: none; justify-content: space-between; align-items: center; padding: 7px 3px 0; color: var(--muted); font-size: 9px; }
-.comment-composer:focus-within .composer-note { display: flex; }
+.composer-note { display: flex; justify-content: space-between; align-items: center; gap: 8px; padding: 7px 3px 0; color: var(--muted); font-size: 9px; }
+.composer-note span:first-child { min-width: 0; }
+.composer-note span:last-child { flex: 0 0 auto; font-variant-numeric: tabular-nums; }
 .form-error { color: #ff8f82; font-size: 9px; margin: 7px 0 0; }
 
 .search-box { height: 52px; padding: 0 14px; display: flex; align-items: center; gap: 10px; border: 1px solid var(--line); border-radius: 14px; background: var(--paper); box-shadow: var(--shadow); }

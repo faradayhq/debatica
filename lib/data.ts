@@ -145,6 +145,7 @@ export type GuestProfile = {
 export type Comment = {
   id: number;
   number?: number;
+  guestId?: string;
   author: string;
   side: "agree" | "disagree" | "neutral";
   text: string;
@@ -152,6 +153,7 @@ export type Comment = {
   positiveVotes: number;
   negativeVotes: number;
   time: string;
+  createdAt?: string;
   replyTo?: number;
   profile?: GuestProfile;
 };
@@ -189,6 +191,7 @@ export const commentsByThread: Record<string, Comment[]> = Object.fromEntries(se
     score: 0,
     positiveVotes: 0,
     negativeVotes: 0,
-    time: COMMENT_TIME_SETS[threadIndex % COMMENT_TIME_SETS.length][commentIndex]
+    time: COMMENT_TIME_SETS[threadIndex % COMMENT_TIME_SETS.length][commentIndex],
+    createdAt: new Date(Date.UTC(2026, 6, 2, 5 + threadIndex % 6, 10 + commentIndex * 7)).toISOString()
   }))
 ]));

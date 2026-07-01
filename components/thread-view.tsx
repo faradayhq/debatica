@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { Fragment, useEffect, useRef, useState, type KeyboardEvent } from "react";
 import Link from "next/link";
 import type { Thread } from "@/lib/data";
 import { commentsByThread, type Comment, type GuestProfile } from "@/lib/data";
@@ -40,6 +40,23 @@ function readCommentVotes(): CommentVotes {
   }
 }
 
+function formatCommentTime(createdAt?: string) {
+  if (!createdAt) return "Jul 2, 15:24";
+  return new Intl.DateTimeFormat("en-US", { month: "short", day: "numeric", hour: "2-digit", minute: "2-digit", hour12: false }).format(new Date(createdAt));
+}
+
+function CommentBody({ text, comments }: { text: string; comments: Comment[] }) {
+  const parts = text.split(/(>>\d+)/g);
+  return <p>{parts.map((part, index) => {
+    const match = part.match(/^>>(\d+)$/);
+    if (!match) return <Fragment key={index}>{part}</Fragment>;
+    const target = comments.find((item) => item.number === Number(match[1]));
+    return target
+      ? <button key={index} type="button" className="comment-quote" onClick={() => document.getElementById(`comment-${target.id}`)?.scrollIntoView({ behavior: "smooth", block: "center" })}>{part}</button>
+      : <span key={index} className="comment-quote missing">{part}</span>;
+  })}</p>;
+}
+
 export function ThreadView({ thread }: { thread: Thread }) {
   const { t } = useLanguage();
   const initialComments = commentsByThread[thread.id] ?? [];
@@ -51,8 +68,9 @@ export function ThreadView({ thread }: { thread: Thread }) {
     disagree: Math.max(0, thread.votes - Math.round(thread.votes * thread.agree / 100))
   }));
   const [voteSaving, setVoteSaving] = useState(false);
-  const [sort, setSort] = useState<"best" | "new" | "old">("old");
   const [comment, setComment] = useState("");
+  const [commentError, setCommentError] = useState("");
+  const [guestId, setGuestId] = useState("");
   const [replyingTo, setReplyingTo] = useState<number | null>(null);
   const [replyText, setReplyText] = useState("");
   const [postingReply, setPostingReply] = useState(false);
@@ -70,31 +88,21 @@ export function ThreadView({ thread }: { thread: Thread }) {
   const handledCommentHash = useRef("");
   const composerRef = useRef<HTMLDivElement>(null);
   const commentInputRef = useRef<HTMLTextAreaElement>(null);
+  const commentsEndRef = useRef<HTMLDivElement>(null);
+  const lastPostAtRef = useRef(0);
   const baseComments = persistedThread ? (loadedComments ?? []) : initialComments;
   const allComments = [...baseComments, ...addedComments];
   const topLevelComments = allComments.filter((item) => !item.replyTo);
-  const displayed = sort === "best"
-    ? topLevelComments
-      .map((item, recency) => ({
-        item,
-        recency,
-        rating: item.positiveVotes
-          + (commentVotes[`comment-id-${item.id}`] === "positive" ? 1 : 0)
-          - item.negativeVotes
-          - (commentVotes[`comment-id-${item.id}`] === "negative" ? 1 : 0)
-      }))
-      .sort((a, b) => b.rating - a.rating || a.recency - b.recency)
-      .map(({ item }) => item)
-    : sort === "new"
-      ? [...topLevelComments].reverse()
-      : topLevelComments;
-  const commentHasUrl = /https?:\/\/|www\./i.test(comment);
-  const commentCanPost = Boolean(comment.trim()) && !commentHasUrl;
+  const displayed = topLevelComments;
+  const commentHasUrl = /https?|www/i.test(comment);
+  const commentTooLong = comment.length > 500;
+  const commentCanPost = Boolean(comment.trim()) && !commentHasUrl && !commentTooLong;
   const replyHasUrl = /https?:\/\/|www\./i.test(replyText);
   const replyCanPost = Boolean(replyText.trim()) && !replyHasUrl;
 
   useEffect(() => {
     setCommentVotes(readCommentVotes());
+    setGuestId(getOrCreateGuestIdentity().id);
   }, []);
 
   useEffect(() => {
@@ -247,9 +255,11 @@ export function ThreadView({ thread }: { thread: Thread }) {
           ...(commentReplyTo && { replyTo: commentReplyTo }),
           profile
         });
-        setAddedComments((current) => [...current, created]);
+        setAddedComments((current) => [...current, { ...created, number: baseComments.length + current.length + 1 }]);
       } catch (error) {
-        setDataError(writeErrorMessage(error, "Could not post your comment. Please try again."));
+        const message = writeErrorMessage(error, "Could not post your comment. Please try again.");
+        if (commentReplyTo) setDataError(message);
+        else setCommentError(message);
         return;
       } finally {
         if (commentReplyTo) setPostingReply(false);
@@ -258,7 +268,7 @@ export function ThreadView({ thread }: { thread: Thread }) {
     } else {
       setAddedComments((current) => {
         const nextNumber = Math.max(0, ...initialComments.map((item) => item.number ?? 0), ...current.map((item) => item.number ?? 0)) + 1;
-        return [...current, { id: Date.now(), number: nextNumber, author: identity.displayName, side: vote ?? "neutral", text, score: 0, positiveVotes: 0, negativeVotes: 0, time: "now", replyTo: commentReplyTo ?? undefined, profile }];
+        return [...current, { id: Date.now(), number: nextNumber, guestId: identity.id, author: identity.displayName, side: vote ?? "neutral", text, score: 0, positiveVotes: 0, negativeVotes: 0, time: "now", createdAt: new Date().toISOString(), replyTo: commentReplyTo ?? undefined, profile }];
       });
     }
     if (commentReplyTo) {
@@ -267,6 +277,9 @@ export function ThreadView({ thread }: { thread: Thread }) {
       setExpandedReplies((current) => new Set(current).add(commentReplyTo));
     } else {
       setComment("");
+      setCommentError("");
+      lastPostAtRef.current = Date.now();
+      window.setTimeout(() => commentsEndRef.current?.scrollIntoView({ behavior: "smooth", block: "end" }), 50);
     }
   }
 
@@ -312,13 +325,26 @@ export function ThreadView({ thread }: { thread: Thread }) {
 
   function submitComment() {
     const text = comment.trim();
-    if (!text || commentHasUrl || postingComment) return;
+    setCommentError("");
+    if (!text) return setCommentError("Enter a comment before posting.");
+    if (commentTooLong) return setCommentError("Comments must be 500 characters or fewer.");
+    if (commentHasUrl) return setCommentError("URLs aren't allowed in comments. Remove http, https, or www.");
+    if (Date.now() - lastPostAtRef.current < 3000) return setCommentError("Please wait 3 seconds before posting another comment.");
+    const latestOwnComment = [...allComments].reverse().find((item) => item.guestId === guestId);
+    if (latestOwnComment?.text.trim() === text) return setCommentError("You already posted that comment. Please write something different.");
+    if (postingComment) return;
     if (!hasSeenProfilePrompt()) {
       pendingComment.current = { text, replyTo: null };
       showProfilePromptOnce();
       return;
     }
     addComment(text, null);
+  }
+
+  function handleCommentKeyDown(event: KeyboardEvent<HTMLTextAreaElement>) {
+    if (event.key !== "Enter" || event.shiftKey || event.nativeEvent.isComposing) return;
+    event.preventDefault();
+    submitComment();
   }
 
   function submitReply(parentId: number) {
@@ -373,21 +399,22 @@ export function ThreadView({ thread }: { thread: Thread }) {
       <AdPlaceholder className="thread-ad-placeholder" />
 
       <section className="comments-section">
-        <div className="comments-title"><div><span className="section-index">{t("thread.discussion")}</span><h2>{t("thread.comments", { count: allComments.length })}</h2></div><div className="sort-tabs" role="group" aria-label="Sort comments"><button aria-pressed={sort === "best"} className={sort === "best" ? "active" : ""} onClick={() => setSort("best")}>{t("sort.best")}</button><button aria-pressed={sort === "new"} className={sort === "new" ? "active" : ""} onClick={() => setSort("new")}>{t("sort.new")}</button><button aria-pressed={sort === "old"} className={sort === "old" ? "active" : ""} onClick={() => setSort("old")}>{t("sort.old")}</button></div></div>
+        <div className="comments-title"><div><span className="section-index">{t("thread.discussion")}</span><h2>{t("thread.comments", { count: allComments.length })}</h2></div></div>
         {commentsLoading && <p className="data-status" role="status">Loading comments…</p>}
         {!commentsLoading && !allComments.length && <EmptyState title="No comments yet" message="Be the first to share a perspective." compact showCreate={false} />}
         <div className="comment-list">
           {displayed.map((item) => {
-            const timeLabel = item.time === "now" ? t("thread.now") : `${item.time} ago`;
+            const timeLabel = formatCommentTime(item.createdAt);
             const profileCountry = getCountryByValue(item.profile?.country);
             const profileLabel = [profileCountry && `${profileCountry.flag} ${profileCountry.name}`, item.profile?.ageRange].filter(Boolean).join(" · ");
             const commentVote = commentVotes[`comment-id-${item.id}`];
             const isReported = reportedCommentIds.has(item.id);
             const replies = allComments.filter((commentItem) => commentItem.replyTo === item.id);
             const repliesExpanded = expandedReplies.has(item.id);
-            return <article id={`comment-${item.id}`} className={`comment-card ${item.side}`} key={item.id}>
-              <div className="comment-head"><div className="avatar">{item.author.slice(0, 2).toUpperCase()}</div><div><div className="comment-author-line"><b>{item.author}</b>{item.number && <span className="comment-number">#{item.number}</span>}</div><span>{timeLabel} · <i>{item.side === "neutral" ? t("thread.noVote") : item.side}</i>{profileLabel && <> · <span className="comment-profile">{profileLabel}</span></>}</span></div><button className="report-button" disabled={isReported} onClick={() => reportComment(item.id)}>{t(isReported ? "action.reported" : "action.report")}</button></div>
-              <BrowserTranslatedContent segments={[{ text: item.text }]} buttonClassName="comment-translation-button" />
+            const isOwn = Boolean(guestId && item.guestId === guestId);
+            return <article id={`comment-${item.id}`} className={`comment-card ${item.side} ${isOwn ? "own" : ""}`} key={item.id}>
+              <div className="comment-head"><div className="avatar">{item.author.slice(0, 2).toUpperCase()}</div><div><div className="comment-author-line"><b>{item.author}</b>{item.number && <span className="comment-number">#{item.number}</span>}{isOwn && <span className="you-label">You</span>}</div><span>{timeLabel}{item.side !== "neutral" && <> · <i className={`stance ${item.side}`}>{item.side === "agree" ? "Agree" : "Disagree"}</i></>}{profileLabel && <> · <span className="comment-profile">{profileLabel}</span></>}</span></div><button className="report-button" disabled={isReported} onClick={() => reportComment(item.id)}>{t(isReported ? "action.reported" : "action.report")}</button></div>
+              <CommentBody text={item.text} comments={allComments} />
               <div className="comment-actions">
                 <span className="comment-score">{t("thread.points", { count: item.score })}</span>
                 <button type="button" className="comment-reply-button" aria-expanded={replyingTo === item.id} onClick={() => startReply(item.id)}>{t("action.reply")}</button>
@@ -404,7 +431,7 @@ export function ThreadView({ thread }: { thread: Thread }) {
               {replies.length > 0 && <div className="comment-replies">
                 <button type="button" className="replies-toggle" aria-expanded={repliesExpanded} onClick={() => toggleReplies(item.id)}>{repliesExpanded ? "Hide replies" : `View ${replies.length} ${replies.length === 1 ? "reply" : "replies"}`}</button>
                 {repliesExpanded && <div className="reply-list">{replies.map((reply) => {
-                  const replyTime = reply.time === "now" ? t("thread.now") : `${reply.time} ago`;
+                  const replyTime = formatCommentTime(reply.createdAt);
                   return <div className="reply-item" id={`comment-${reply.id}`} key={reply.id}>
                     <div><b>{reply.author}</b><span>{replyTime}</span><button type="button" onClick={() => startReply(item.id)}>{t("action.reply")}</button></div>
                     <BrowserTranslatedContent segments={[{ text: reply.text }]} buttonClassName="comment-translation-button" />
@@ -414,15 +441,16 @@ export function ThreadView({ thread }: { thread: Thread }) {
             </article>;
           })}
         </div>
+        <div ref={commentsEndRef} aria-hidden="true" />
       </section>
       <div className="comment-composer" ref={composerRef}>
         <div className="composer-input-row">
           <Icon name="comment" size={18} />
-          <textarea ref={commentInputRef} rows={1} aria-label="Comment" aria-invalid={commentHasUrl} value={comment} onChange={(e) => setComment(e.target.value)} placeholder={t("thread.write")} maxLength={800} />
+          <textarea ref={commentInputRef} rows={1} aria-label="Comment" aria-invalid={Boolean(commentError)} aria-describedby="comment-help comment-error" value={comment} onChange={(e) => { setComment(e.target.value); setCommentError(""); }} onKeyDown={handleCommentKeyDown} placeholder={t("thread.write")} maxLength={500} />
           <button type="button" disabled={!commentCanPost || postingComment} onClick={submitComment}>{postingComment ? "…" : t("action.post")}</button>
         </div>
-        <div className="composer-note"><span>{t("thread.composerNote")}</span><span>{comment.length}/800</span></div>
-        {commentHasUrl && <p className="form-error" role="alert">URLs aren&apos;t allowed in comments.</p>}
+        <div className="composer-note" id="comment-help"><span>Enter to post · Shift+Enter for a new line · No URLs</span><span>{comment.length} / 500</span></div>
+        {(commentError || commentHasUrl) && <p className="form-error" id="comment-error" role="alert">{commentError || "URLs aren't allowed in comments. Remove http, https, or www."}</p>}
       </div>
       <CountryPrompt open={countryPromptOpen} onComplete={completeProfilePrompt} />
       <ReportModal open={reportOpen} onClose={() => setReportOpen(false)} targetType="thread" targetId={thread.id} threadId={thread.id} />
