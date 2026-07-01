@@ -14,6 +14,9 @@ export const metadata: Metadata = {
     template: "%s · Debatica"
   },
   description: "Join the anonymous debate platform.",
+  verification: {
+    google: "gg5StnKyZ3gBFPitX80eDtH7nHGpjdYhYrucxCxXcs0"
+  },
   openGraph: {
     type: "website",
     locale: "en_US",
