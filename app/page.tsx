@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { ThreadCard } from "@/components/thread-card";
-import { threads } from "@/lib/data";
+import { mergeSeedThreads, threads } from "@/lib/data";
 import { useLanguage } from "@/components/language-provider";
 import { getSupabaseBrowserClient, isSupabaseConfigured } from "@/lib/supabase/client";
 import { fetchThreads } from "@/lib/supabase/data";
@@ -11,11 +11,11 @@ import { CategoryGrid } from "@/components/category-grid";
 import Link from "next/link";
 
 export default function Home() {
-  const { locale, setLocale, t } = useLanguage();
+  const { t } = useLanguage();
   const [supabaseThreads, setSupabaseThreads] = useState<Thread[] | null>(null);
   const [loading, setLoading] = useState(isSupabaseConfigured());
   const [loadError, setLoadError] = useState("");
-  const displayThreads = supabaseThreads?.length ? supabaseThreads : threads;
+  const displayThreads = supabaseThreads ? mergeSeedThreads(supabaseThreads) : threads;
   const [sort, setSort] = useState<"new" | "popular">("new");
   const sortedThreads = useMemo(() => {
     if (sort === "new") {
@@ -50,26 +50,8 @@ export default function Home() {
       <h1 className="visually-hidden">Debatica debates</h1>
       <div className="home-layout">
       <div className="home-main">
-      <section className="home-intro" aria-label="Debatica introduction and language">
+      <section className="home-intro" aria-label="Debatica introduction">
         <p>{t("home.subtitle")}</p>
-        <div className="language-options" role="group" aria-label="Choose display language / 表示言語を選択">
-          <button
-            type="button"
-            className={locale === "ja" ? "active" : ""}
-            aria-pressed={locale === "ja"}
-            onClick={() => setLocale("ja")}
-          >
-            <span aria-hidden="true">🇯🇵</span> 日本語
-          </button>
-          <button
-            type="button"
-            className={locale === "en" ? "active" : ""}
-            aria-pressed={locale === "en"}
-            onClick={() => setLocale("en")}
-          >
-            <span aria-hidden="true">🇺🇸</span> English
-          </button>
-        </div>
       </section>
 
       {loading && <p className="data-status" role="status">Loading threads…</p>}

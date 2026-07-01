@@ -1,7 +1,8 @@
+import type { Metadata } from "next";
 import { CategoryGrid } from "@/components/category-grid";
 import { EmptyState } from "@/components/empty-state";
 import { ThreadCard } from "@/components/thread-card";
-import { categories, threads, type Category } from "@/lib/data";
+import { categories, mergeSeedThreads, threads, type Category } from "@/lib/data";
 import { getSupabaseServerClient } from "@/lib/supabase/server";
 import { fetchThreads } from "@/lib/supabase/data";
 
@@ -16,7 +17,7 @@ export default async function CategoriesPage({ searchParams }: { searchParams: P
   if (client) {
     try {
       const liveThreads = await fetchThreads(client);
-      availableThreads = liveThreads.length ? liveThreads : threads;
+      availableThreads = mergeSeedThreads(liveThreads);
     } catch {
       loadError = "Could not load live threads. Showing available threads instead.";
     }
@@ -33,4 +34,3 @@ export default async function CategoriesPage({ searchParams }: { searchParams: P
     </div>
   );
 }
-import type { Metadata } from "next";

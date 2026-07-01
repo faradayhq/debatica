@@ -3,7 +3,7 @@
 import { Fragment, useEffect, useRef, useState, type KeyboardEvent } from "react";
 import Link from "next/link";
 import type { Thread } from "@/lib/data";
-import { commentsByThread, type Comment, type GuestProfile } from "@/lib/data";
+import { addThreadVoteCounts, commentsByThread, threadVoteCounts, type Comment, type GuestProfile } from "@/lib/data";
 import { VoteSplit } from "./thread-card";
 import { AdPlaceholder } from "./ad-placeholder";
 import { Icon } from "./icons";
@@ -63,10 +63,7 @@ export function ThreadView({ thread }: { thread: Thread }) {
   const displayedTitle = useThreadTitle(thread.id, thread.title);
   const persistedThread = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(thread.id);
   const [vote, setVote] = useState<"agree" | "disagree" | null>(null);
-  const [voteCounts, setVoteCounts] = useState(() => ({
-    agree: Math.round(thread.votes * thread.agree / 100),
-    disagree: Math.max(0, thread.votes - Math.round(thread.votes * thread.agree / 100))
-  }));
+  const [voteCounts, setVoteCounts] = useState(() => threadVoteCounts(thread));
   const [voteSaving, setVoteSaving] = useState(false);
   const [comment, setComment] = useState("");
   const [commentError, setCommentError] = useState("");
@@ -92,6 +89,12 @@ export function ThreadView({ thread }: { thread: Thread }) {
   const lastPostAtRef = useRef(0);
   const baseComments = persistedThread ? (loadedComments ?? []) : initialComments;
   const allComments = [...baseComments, ...addedComments];
+  const baseDisplayCommentCount = thread.seedActivity
+    ? thread.seedActivity.comments + (persistedThread ? baseComments.length : 0)
+    : persistedThread && loadedComments === null
+      ? thread.comments
+      : baseComments.length;
+  const displayedCommentCount = baseDisplayCommentCount + addedComments.length;
   const topLevelComments = allComments.filter((item) => !item.replyTo);
   const displayed = topLevelComments;
   const commentHasUrl = /https?|www/i.test(comment);
@@ -124,7 +127,7 @@ export function ThreadView({ thread }: { thread: Thread }) {
       if (!active) return;
       setLoadedComments(comments);
       setVote(guestVote);
-      setVoteCounts({ agree: counts.agree, disagree: counts.disagree });
+      setVoteCounts(addThreadVoteCounts(thread, counts));
     }).catch(() => {
       if (active) setDataError("Could not load the latest discussion. Please try again.");
     }).finally(() => {
@@ -134,7 +137,7 @@ export function ThreadView({ thread }: { thread: Thread }) {
     async function refreshVotes() {
       try {
         const counts = await fetchVoteCounts(client!, thread.id);
-        if (active) setVoteCounts({ agree: counts.agree, disagree: counts.disagree });
+        if (active) setVoteCounts(addThreadVoteCounts(thread, counts));
       } catch {
         // The optimistic vote remains visible if a realtime refresh fails.
       }
@@ -148,7 +151,7 @@ export function ThreadView({ thread }: { thread: Thread }) {
       active = false;
       void client.removeChannel(channel);
     };
-  }, [persistedThread, thread.id]);
+  }, [persistedThread, thread]);
 
   useEffect(() => {
     addRecentlyViewedThread(thread.id);
@@ -389,7 +392,7 @@ export function ThreadView({ thread }: { thread: Thread }) {
         <VoteSplit agree={voteCounts.agree} disagree={voteCounts.disagree} animate />
         <div className="thread-stats" aria-live="polite">
           <span title={`${voteCounts.agree + voteCounts.disagree} votes`}><Icon name="vote" size={15} /> <AnimatedNumber value={voteCounts.agree + voteCounts.disagree} format={(count) => t("card.votes", { count: formatCompactCount(count) })} /></span>
-          <span title={`${allComments.length} comments`}><Icon name="comment" size={15} /> {t("thread.comments", { count: formatCompactCount(allComments.length) })}</span>
+          <span title={`${displayedCommentCount} comments`}><Icon name="comment" size={15} /> {t("thread.comments", { count: formatCompactCount(displayedCommentCount) })}</span>
           <button type="button" className="share-x-button" onClick={shareOnX}>{t("action.shareX")}</button>
         </div>
         {dataError && <p className="data-status error thread-data-status" role="alert">{dataError}</p>}
@@ -399,9 +402,9 @@ export function ThreadView({ thread }: { thread: Thread }) {
       <AdPlaceholder className="thread-ad-placeholder" />
 
       <section className="comments-section">
-        <div className="comments-title"><div><span className="section-index">{t("thread.discussion")}</span><h2>{t("thread.comments", { count: allComments.length })}</h2></div></div>
+        <div className="comments-title"><div><span className="section-index">{t("thread.discussion")}</span><h2>{t("thread.comments", { count: displayedCommentCount })}</h2></div></div>
         {commentsLoading && <p className="data-status" role="status">Loading comments…</p>}
-        {!commentsLoading && !allComments.length && <EmptyState title="No comments yet" message="Be the first to share a perspective." compact showCreate={false} />}
+        {!commentsLoading && !displayedCommentCount && <EmptyState title="No comments yet" message="Be the first to share a perspective." compact showCreate={false} />}
         <div className="comment-list">
           {displayed.map((item) => {
             const timeLabel = formatCommentTime(item.createdAt);

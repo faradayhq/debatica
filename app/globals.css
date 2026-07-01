@@ -36,16 +36,7 @@ button:disabled { cursor: not-allowed; }
 .guest-badge { color: var(--muted); border: 1px solid var(--line); border-radius: 999px; padding: 6px 9px; }
 .page { padding-bottom: 106px; min-height: calc(100vh - 68px); }
 
-.home-language { padding: 16px 14px 0; }
-.home-language > p { margin: 0 0 8px; color: var(--muted); font: 600 10px "DM Mono", monospace; letter-spacing: .06em; text-transform: uppercase; }
-.language-options { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 5px; padding: 4px; border: 1px solid var(--line); border-radius: 13px; background: #181b1e; }
-.language-options button { min-height: 44px; border: 1px solid transparent; border-radius: 9px; background: transparent; color: var(--muted); font-size: 13px; font-weight: 650; transition: background .15s, border-color .15s, color .15s; }
-.language-options button span { margin-right: 5px; font-size: 16px; }
-.language-options button.active { border-color: rgba(70,195,123,.42); background: var(--sage); color: #85e3aa; box-shadow: inset 0 0 0 1px rgba(70,195,123,.08); }
-.language-options button:not(.active):hover { background: rgba(255,255,255,.035); color: var(--ink); }
-
 .welcome { padding: 42px 22px 28px; }
-.home-language + .welcome { padding-top: 30px; }
 .welcome .kicker { color: var(--coral); margin-bottom: 14px; }
 .welcome h1, .page-intro h1, .success-state h1 { font: 500 45px/0.96 "Newsreader", serif; letter-spacing: -.035em; margin-bottom: 15px; }
 .welcome h1 em { color: var(--forest); }
@@ -380,11 +371,8 @@ button:disabled { cursor: not-allowed; }
 .section-index, .admin-number { font-family: var(--sans); font-weight: 700; letter-spacing: .06em; }
 .page { min-height: calc(100vh - 60px); padding-bottom: 40px; }
 
-.home-intro { min-height: 54px; display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 8px 12px; border-bottom: 1px solid var(--line); }
-.home-intro > p { min-width: 0; margin: 0; overflow: hidden; color: var(--muted); font-size: 11px; text-overflow: ellipsis; white-space: nowrap; }
-.home-intro .language-options { flex: 0 0 auto; display: flex; gap: 2px; padding: 2px; border-radius: 8px; }
-.home-intro .language-options button { min-height: 30px; padding: 3px 8px; border-radius: 6px; font-size: 10px; }
-.home-intro .language-options button span { margin-right: 2px; font-size: 12px; }
+.home-intro { min-height: 46px; display: flex; align-items: center; padding: 8px 12px; border-bottom: 1px solid var(--line); }
+.home-intro > p { min-width: 0; margin: 0; color: var(--muted); font-size: 11px; line-height: 1.4; }
 
 .welcome { padding: 12px 18px 8px; }
 .welcome .kicker { margin-bottom: 4px; font-size: 8px; letter-spacing: .07em; }

@@ -6,7 +6,7 @@ import { Icon } from "@/components/icons";
 import { EmptyState } from "@/components/empty-state";
 import { RecentlyViewedThreads } from "@/components/recently-viewed-threads";
 import { ThreadCard } from "@/components/thread-card";
-import { categories, threads, type Thread } from "@/lib/data";
+import { categories, mergeSeedThreads, threads, type Thread } from "@/lib/data";
 import { categoryTranslationKey } from "@/lib/i18n";
 import { useLanguage } from "@/components/language-provider";
 import { getSupabaseBrowserClient, isSupabaseConfigured } from "@/lib/supabase/client";
@@ -30,7 +30,7 @@ export default function SearchPage() {
     if (!client) return;
     let active = true;
     fetchThreads(client)
-      .then((items) => { if (active) setAvailableThreads(items.length ? items : threads); })
+      .then((items) => { if (active) setAvailableThreads(mergeSeedThreads(items)); })
       .catch(() => {
         if (!active) return;
         setAvailableThreads(threads);
