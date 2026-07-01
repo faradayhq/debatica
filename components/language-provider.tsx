@@ -30,7 +30,7 @@ export function LanguageProvider({ children }: { children: React.ReactNode }) {
   const value = useMemo<LanguageContextValue>(() => ({
     locale,
     setLocale(nextLocale) {
-      localStorage.setItem(LANGUAGE_STORAGE_KEY, nextLocale);
+      try { localStorage.setItem(LANGUAGE_STORAGE_KEY, nextLocale); } catch { /* Keep the in-memory preference. */ }
       setLocaleState(nextLocale);
     },
     t(key, values = {}) {

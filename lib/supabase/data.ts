@@ -8,6 +8,7 @@ type ThreadRow = {
   description: string | null;
   category: string;
   created_at: string;
+  thumbnail_data_url: string | null;
   comment_count: number | string | null;
   vote_count: number | string | null;
   agree_count: number | string | null;
@@ -35,6 +36,26 @@ export type ReportRow = {
   comment_id: number | null;
   guest_id: string;
   created_at: string;
+};
+
+export type ReplyNotification = {
+  id: number;
+  threadId: string;
+  threadTitle: string;
+  replyId: number;
+  replyPreview: string;
+  createdAt: string;
+  readAt: string | null;
+};
+
+type ReplyNotificationRow = {
+  id: number;
+  thread_id: string;
+  thread_title: string;
+  reply_id: number;
+  reply_preview: string;
+  created_at: string;
+  read_at: string | null;
 };
 
 const RATE_LIMIT_MESSAGES = {
@@ -83,6 +104,7 @@ function mapThread(row: ThreadRow): Thread {
     title: row.title,
     category: isCategory(row.category) ? row.category : "Society",
     ...(row.description && { description: row.description }),
+    ...(row.thumbnail_data_url && { thumbnailUrl: row.thumbnail_data_url }),
     agree,
     disagree: votes ? 100 - agree : 0,
     comments: Number(row.comment_count ?? 0),
@@ -137,12 +159,13 @@ export async function fetchThreadsByIds(client: SupabaseClient, ids: string[]) {
   return validIds.map((id) => byId.get(id)).filter((thread): thread is Thread => Boolean(thread));
 }
 
-export async function createThread(client: SupabaseClient, input: { title: string; description?: string; category: Category; guestId: string }) {
+export async function createThread(client: SupabaseClient, input: { title: string; description?: string; category: Category; guestId: string; thumbnailDataUrl?: string }) {
   const { data, error } = await client.rpc("create_thread_limited", {
     p_title: input.title,
     p_description: input.description ?? "",
     p_category: input.category,
-    p_guest_id: input.guestId
+    p_guest_id: input.guestId,
+    p_thumbnail_data_url: input.thumbnailDataUrl ?? null
   }).single();
   if (error) throwWriteError(error, "thread");
   return data as { id: string };
@@ -222,4 +245,28 @@ export async function fetchReports(client: SupabaseClient) {
   const { data, error } = await client.from("reports").select("*").order("created_at", { ascending: false });
   if (error) throw error;
   return data as ReportRow[];
+}
+
+export async function fetchReplyNotifications(client: SupabaseClient, guestId: string): Promise<ReplyNotification[]> {
+  const { data, error } = await client.rpc("get_reply_notifications", { p_guest_id: guestId });
+  if (error) throw error;
+  return ((data ?? []) as ReplyNotificationRow[]).map((row) => ({
+    id: Number(row.id),
+    threadId: row.thread_id,
+    threadTitle: row.thread_title,
+    replyId: Number(row.reply_id),
+    replyPreview: row.reply_preview,
+    createdAt: row.created_at,
+    readAt: row.read_at
+  }));
+}
+
+export async function markReplyNotificationRead(client: SupabaseClient, guestId: string, notificationId: number) {
+  const { error } = await client.rpc("mark_reply_notification_read", { p_guest_id: guestId, p_notification_id: notificationId });
+  if (error) throw error;
+}
+
+export async function markAllReplyNotificationsRead(client: SupabaseClient, guestId: string) {
+  const { error } = await client.rpc("mark_all_reply_notifications_read", { p_guest_id: guestId });
+  if (error) throw error;
 }

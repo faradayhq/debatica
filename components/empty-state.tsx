@@ -7,6 +7,7 @@ export function EmptyState({
   message,
   page = false,
   compact = false,
+  showCreate = true,
   children
 }: {
   code?: string;
@@ -14,6 +15,7 @@ export function EmptyState({
   message: string;
   page?: boolean;
   compact?: boolean;
+  showCreate?: boolean;
   children?: ReactNode;
 }) {
   const className = page ? "not-found-state" : `empty-state${compact ? " compact" : ""}`;
@@ -23,10 +25,10 @@ export function EmptyState({
       <span className={page ? "not-found-code" : undefined} aria-hidden="true">{code}</span>
       {page ? <h1>{title}</h1> : <h3>{title}</h3>}
       <p>{message}</p>
-      <div className="empty-state-actions">
-        <Link className="primary-button" href="/create">Create Thread</Link>
+      {((!page && showCreate) || children) && <div className="empty-state-actions">
+        {!page && showCreate && <Link className="primary-button" href="/create">Create thread</Link>}
         {children}
-      </div>
+      </div>}
     </section>
   );
 }

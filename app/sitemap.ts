@@ -3,7 +3,7 @@ import type { MetadataRoute } from "next";
 const siteUrl = "https://debatica.com";
 
 export default function sitemap(): MetadataRoute.Sitemap {
-  const routes = ["", "/about", "/categories", "/contact", "/create", "/privacy", "/search", "/terms"];
+  const routes = ["", "/about", "/categories", "/contact", "/create", "/help", "/privacy", "/profile", "/search", "/terms"];
 
   return routes.map((route) => ({
     url: `${siteUrl}${route}`,

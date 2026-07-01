@@ -3,12 +3,13 @@
 import { useEffect, useId, useState } from "react";
 import Link from "next/link";
 import type { Thread } from "@/lib/data";
-import { Icon } from "./icons";
 import { useLanguage } from "./language-provider";
 import { formatCompactCount } from "@/lib/format-count";
 import { getSupabaseBrowserClient } from "@/lib/supabase/client";
 import { fetchThread } from "@/lib/supabase/data";
 import { AnimatedNumber } from "./animated-number";
+import { categoryTranslationKey } from "@/lib/i18n";
+import { useThreadTitle } from "./thread-title-provider";
 
 export function VoteSplit({ agree, disagree, compact = false, animate = false }: { agree: number; disagree: number; compact?: boolean; animate?: boolean }) {
   const { t } = useLanguage();
@@ -47,6 +48,7 @@ export function ThreadCard({ thread }: { thread: Thread; rank?: number }) {
   const [liveThread, setLiveThread] = useState(thread);
   const subscriptionId = useId().replace(/:/g, "");
   const { t } = useLanguage();
+  const displayedTitle = useThreadTitle(liveThread.id, liveThread.title);
 
   useEffect(() => setLiveThread(thread), [thread]);
 
@@ -78,11 +80,15 @@ export function ThreadCard({ thread }: { thread: Thread; rank?: number }) {
 
   return (
     <article className="thread-card">
-      <Link href={`/thread/${thread.id}`} className="thread-card-link" aria-label={`Open debate: ${thread.title}`} />
+      <Link href={`/thread/${thread.id}`} className="thread-card-link" aria-label={`Open debate: ${displayedTitle}`} />
+      {liveThread.thumbnailUrl && <img className="thread-thumbnail" src={liveThread.thumbnailUrl} alt="" />}
       <div className="thread-card-body">
-        <h3>{liveThread.title}</h3>
+        <h3>{displayedTitle}</h3>
         <VoteSplit agree={liveThread.agree} disagree={liveThread.disagree} compact />
-        <div className="card-meta"><span className="thread-metrics" aria-label={`${liveThread.votes} votes, ${liveThread.comments} comments`}><span>{t("card.votes", { count: formatCompactCount(liveThread.votes) })}</span><span className="metric-separator" aria-hidden="true">•</span><span>{t("thread.comments", { count: formatCompactCount(liveThread.comments) })}</span></span><span className="open-thread">{t("card.join")} <Icon name="arrow" size={16} /></span></div>
+        <div className="card-meta">
+          <span className="thread-context"><span>{t(categoryTranslationKey(liveThread.category))}</span><span className="metric-separator" aria-hidden="true">•</span><span>{liveThread.time}</span></span>
+          <span className="thread-metrics" aria-label={`${liveThread.votes} votes, ${liveThread.comments} comments`}><span>{t("card.votes", { count: formatCompactCount(liveThread.votes) })}</span><span className="metric-separator" aria-hidden="true">•</span><span>{t("thread.comments", { count: formatCompactCount(liveThread.comments) })}</span></span>
+        </div>
       </div>
     </article>
   );

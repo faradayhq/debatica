@@ -21,6 +21,7 @@ import { createComment, createReport, fetchComments, fetchGuestVote, fetchVoteCo
 import { BrowserTranslatedContent } from "./browser-translated-content";
 import { formatCompactCount } from "@/lib/format-count";
 import { AnimatedNumber } from "./animated-number";
+import { useThreadTitle } from "./thread-title-provider";
 
 const COMMENT_VOTES_KEY = "debaticaCommentVotes";
 type CommentVote = "positive" | "negative";
@@ -42,6 +43,7 @@ function readCommentVotes(): CommentVotes {
 export function ThreadView({ thread }: { thread: Thread }) {
   const { t } = useLanguage();
   const initialComments = commentsByThread[thread.id] ?? [];
+  const displayedTitle = useThreadTitle(thread.id, thread.title);
   const persistedThread = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(thread.id);
   const [vote, setVote] = useState<"agree" | "disagree" | null>(null);
   const [voteCounts, setVoteCounts] = useState(() => ({
@@ -51,7 +53,10 @@ export function ThreadView({ thread }: { thread: Thread }) {
   const [voteSaving, setVoteSaving] = useState(false);
   const [sort, setSort] = useState<"best" | "new" | "old">("old");
   const [comment, setComment] = useState("");
-  const [replyTo, setReplyTo] = useState<number | null>(null);
+  const [replyingTo, setReplyingTo] = useState<number | null>(null);
+  const [replyText, setReplyText] = useState("");
+  const [postingReply, setPostingReply] = useState(false);
+  const [expandedReplies, setExpandedReplies] = useState<Set<number>>(() => new Set());
   const [loadedComments, setLoadedComments] = useState<Comment[] | null>(null);
   const [addedComments, setAddedComments] = useState<Comment[]>([]);
   const [commentsLoading, setCommentsLoading] = useState(persistedThread);
@@ -62,12 +67,14 @@ export function ThreadView({ thread }: { thread: Thread }) {
   const [reportedCommentIds, setReportedCommentIds] = useState<Set<number>>(() => new Set());
   const [reportOpen, setReportOpen] = useState(false);
   const pendingComment = useRef<{ text: string; replyTo: number | null } | null>(null);
+  const handledCommentHash = useRef("");
   const composerRef = useRef<HTMLDivElement>(null);
   const commentInputRef = useRef<HTMLTextAreaElement>(null);
   const baseComments = persistedThread ? (loadedComments ?? []) : initialComments;
   const allComments = [...baseComments, ...addedComments];
+  const topLevelComments = allComments.filter((item) => !item.replyTo);
   const displayed = sort === "best"
-    ? allComments
+    ? topLevelComments
       .map((item, recency) => ({
         item,
         recency,
@@ -79,10 +86,12 @@ export function ThreadView({ thread }: { thread: Thread }) {
       .sort((a, b) => b.rating - a.rating || a.recency - b.recency)
       .map(({ item }) => item)
     : sort === "new"
-      ? [...allComments].reverse()
-      : allComments;
+      ? [...topLevelComments].reverse()
+      : topLevelComments;
   const commentHasUrl = /https?:\/\/|www\./i.test(comment);
   const commentCanPost = Boolean(comment.trim()) && !commentHasUrl;
+  const replyHasUrl = /https?:\/\/|www\./i.test(replyText);
+  const replyCanPost = Boolean(replyText.trim()) && !replyHasUrl;
 
   useEffect(() => {
     setCommentVotes(readCommentVotes());
@@ -136,6 +145,17 @@ export function ThreadView({ thread }: { thread: Thread }) {
   useEffect(() => {
     addRecentlyViewedThread(thread.id);
   }, [thread.id]);
+
+  useEffect(() => {
+    const match = window.location.hash.match(/^#comment-(\d+)$/);
+    if (!match || handledCommentHash.current === window.location.hash) return;
+    const commentId = Number(match[1]);
+    const target = allComments.find((item) => item.id === commentId);
+    if (!target) return;
+    handledCommentHash.current = window.location.hash;
+    if (target.replyTo) setExpandedReplies((current) => new Set(current).add(target.replyTo!));
+    window.setTimeout(() => document.getElementById(`comment-${commentId}`)?.scrollIntoView({ behavior: "smooth", block: "center" }), 50);
+  }, [loadedComments, addedComments]);
 
   useEffect(() => {
     const viewport = window.visualViewport;
@@ -215,7 +235,8 @@ export function ThreadView({ thread }: { thread: Thread }) {
         setDataError("Could not post your comment. Supabase is not configured.");
         return;
       }
-      setPostingComment(true);
+      if (commentReplyTo) setPostingReply(true);
+      else setPostingComment(true);
       try {
         const created = await createComment(client, {
           threadId: thread.id,
@@ -231,7 +252,8 @@ export function ThreadView({ thread }: { thread: Thread }) {
         setDataError(writeErrorMessage(error, "Could not post your comment. Please try again."));
         return;
       } finally {
-        setPostingComment(false);
+        if (commentReplyTo) setPostingReply(false);
+        else setPostingComment(false);
       }
     } else {
       setAddedComments((current) => {
@@ -239,13 +261,27 @@ export function ThreadView({ thread }: { thread: Thread }) {
         return [...current, { id: Date.now(), number: nextNumber, author: identity.displayName, side: vote ?? "neutral", text, score: 0, positiveVotes: 0, negativeVotes: 0, time: "now", replyTo: commentReplyTo ?? undefined, profile }];
       });
     }
-    setComment("");
-    setReplyTo(null);
+    if (commentReplyTo) {
+      setReplyText("");
+      setReplyingTo(null);
+      setExpandedReplies((current) => new Set(current).add(commentReplyTo));
+    } else {
+      setComment("");
+    }
   }
 
-  function startReply(commentNumber: number) {
-    setReplyTo(commentNumber);
-    commentInputRef.current?.focus();
+  function startReply(commentId: number) {
+    setReplyingTo((current) => current === commentId ? null : commentId);
+    setReplyText("");
+  }
+
+  function toggleReplies(commentId: number) {
+    setExpandedReplies((current) => {
+      const next = new Set(current);
+      if (next.has(commentId)) next.delete(commentId);
+      else next.add(commentId);
+      return next;
+    });
   }
 
   function voteOnComment(commentId: number, choice: CommentVote) {
@@ -278,11 +314,22 @@ export function ThreadView({ thread }: { thread: Thread }) {
     const text = comment.trim();
     if (!text || commentHasUrl || postingComment) return;
     if (!hasSeenProfilePrompt()) {
-      pendingComment.current = { text, replyTo };
+      pendingComment.current = { text, replyTo: null };
       showProfilePromptOnce();
       return;
     }
-    addComment(text, replyTo);
+    addComment(text, null);
+  }
+
+  function submitReply(parentId: number) {
+    const text = replyText.trim();
+    if (!text || replyHasUrl || postingReply) return;
+    if (!hasSeenProfilePrompt()) {
+      pendingComment.current = { text, replyTo: parentId };
+      showProfilePromptOnce();
+      return;
+    }
+    addComment(text, parentId);
   }
 
   function completeProfilePrompt(profile?: GuestProfile) {
@@ -304,7 +351,7 @@ export function ThreadView({ thread }: { thread: Thread }) {
       <article className="thread-hero">
         <div className="eyebrow-row"><span className="category-pill">{t(categoryTranslationKey(thread.category))}</span><span className="thread-hero-meta"><span>{t("thread.started", { time: thread.time })}</span><button className="report-button" onClick={() => setReportOpen(true)}>{t("action.report")}</button></span></div>
         <BrowserTranslatedContent segments={[
-          { as: "h1", text: thread.title },
+          { as: "h1", text: displayedTitle },
           ...(thread.description ? [{ as: "p" as const, className: "thread-description", text: thread.description }] : [])
         ]} />
         <VoteSplit agree={voteCounts.agree} disagree={voteCounts.disagree} animate />
@@ -328,7 +375,7 @@ export function ThreadView({ thread }: { thread: Thread }) {
       <section className="comments-section">
         <div className="comments-title"><div><span className="section-index">{t("thread.discussion")}</span><h2>{t("thread.comments", { count: allComments.length })}</h2></div><div className="sort-tabs" role="group" aria-label="Sort comments"><button aria-pressed={sort === "best"} className={sort === "best" ? "active" : ""} onClick={() => setSort("best")}>{t("sort.best")}</button><button aria-pressed={sort === "new"} className={sort === "new" ? "active" : ""} onClick={() => setSort("new")}>{t("sort.new")}</button><button aria-pressed={sort === "old"} className={sort === "old" ? "active" : ""} onClick={() => setSort("old")}>{t("sort.old")}</button></div></div>
         {commentsLoading && <p className="data-status" role="status">Loading comments…</p>}
-        {!commentsLoading && !allComments.length && <EmptyState title="No comments yet" message="Start the conversation, or create a new thread." compact />}
+        {!commentsLoading && !allComments.length && <EmptyState title="No comments yet" message="Be the first to share a perspective." compact showCreate={false} />}
         <div className="comment-list">
           {displayed.map((item) => {
             const timeLabel = item.time === "now" ? t("thread.now") : `${item.time} ago`;
@@ -336,24 +383,39 @@ export function ThreadView({ thread }: { thread: Thread }) {
             const profileLabel = [profileCountry && `${profileCountry.flag} ${profileCountry.name}`, item.profile?.ageRange].filter(Boolean).join(" · ");
             const commentVote = commentVotes[`comment-id-${item.id}`];
             const isReported = reportedCommentIds.has(item.id);
+            const replies = allComments.filter((commentItem) => commentItem.replyTo === item.id);
+            const repliesExpanded = expandedReplies.has(item.id);
             return <article id={`comment-${item.id}`} className={`comment-card ${item.side}`} key={item.id}>
               <div className="comment-head"><div className="avatar">{item.author.slice(0, 2).toUpperCase()}</div><div><div className="comment-author-line"><b>{item.author}</b>{item.number && <span className="comment-number">#{item.number}</span>}</div><span>{timeLabel} · <i>{item.side === "neutral" ? t("thread.noVote") : item.side}</i>{profileLabel && <> · <span className="comment-profile">{profileLabel}</span></>}</span></div><button className="report-button" disabled={isReported} onClick={() => reportComment(item.id)}>{t(isReported ? "action.reported" : "action.report")}</button></div>
-              {item.replyTo && <div className="reply-anchor">↪ Reply to <b>#{item.replyTo}</b></div>}
               <BrowserTranslatedContent segments={[{ text: item.text }]} buttonClassName="comment-translation-button" />
               <div className="comment-actions">
                 <span className="comment-score">{t("thread.points", { count: item.score })}</span>
-                {item.number && <button type="button" className="comment-reply-button" onClick={() => startReply(item.number!)}>{t("action.reply")}</button>}
+                <button type="button" className="comment-reply-button" aria-expanded={replyingTo === item.id} onClick={() => startReply(item.id)}>{t("action.reply")}</button>
                 <div className="comment-votes" role="group" aria-label="Rate this comment">
                   <button type="button" className={`comment-vote positive ${commentVote === "positive" ? "selected" : ""}`} aria-label={`Support comment by ${item.author}`} aria-pressed={commentVote === "positive"} disabled={Boolean(commentVote)} onClick={() => voteOnComment(item.id, "positive")}><span aria-hidden="true">+</span> {item.positiveVotes + (commentVote === "positive" ? 1 : 0)}</button>
                   <button type="button" className={`comment-vote negative ${commentVote === "negative" ? "selected" : ""}`} aria-label={`Oppose comment by ${item.author}`} aria-pressed={commentVote === "negative"} disabled={Boolean(commentVote)} onClick={() => voteOnComment(item.id, "negative")}><span aria-hidden="true">−</span> {item.negativeVotes + (commentVote === "negative" ? 1 : 0)}</button>
                 </div>
               </div>
+              {replyingTo === item.id && <div className="inline-reply-form">
+                <textarea rows={2} autoFocus aria-label={`Reply to ${item.author}`} aria-invalid={replyHasUrl} value={replyText} onChange={(event) => setReplyText(event.target.value)} maxLength={300} placeholder="Write a short reply…" />
+                <div><span>{replyText.length}/300</span><button type="button" onClick={() => startReply(item.id)}>Cancel</button><button type="button" className="inline-reply-submit" disabled={!replyCanPost || postingReply} onClick={() => submitReply(item.id)}>{postingReply ? "…" : t("action.post")}</button></div>
+                {replyHasUrl && <p className="form-error" role="alert">URLs aren&apos;t allowed in replies.</p>}
+              </div>}
+              {replies.length > 0 && <div className="comment-replies">
+                <button type="button" className="replies-toggle" aria-expanded={repliesExpanded} onClick={() => toggleReplies(item.id)}>{repliesExpanded ? "Hide replies" : `View ${replies.length} ${replies.length === 1 ? "reply" : "replies"}`}</button>
+                {repliesExpanded && <div className="reply-list">{replies.map((reply) => {
+                  const replyTime = reply.time === "now" ? t("thread.now") : `${reply.time} ago`;
+                  return <div className="reply-item" id={`comment-${reply.id}`} key={reply.id}>
+                    <div><b>{reply.author}</b><span>{replyTime}</span><button type="button" onClick={() => startReply(item.id)}>{t("action.reply")}</button></div>
+                    <BrowserTranslatedContent segments={[{ text: reply.text }]} buttonClassName="comment-translation-button" />
+                  </div>;
+                })}</div>}
+              </div>}
             </article>;
           })}
         </div>
       </section>
       <div className="comment-composer" ref={composerRef}>
-        {replyTo && <div className="composer-reply-context"><span>{t("thread.replying", { number: replyTo })}</span><button type="button" onClick={() => setReplyTo(null)}>{t("action.cancel")}</button></div>}
         <div className="composer-input-row">
           <Icon name="comment" size={18} />
           <textarea ref={commentInputRef} rows={1} aria-label="Comment" aria-invalid={commentHasUrl} value={comment} onChange={(e) => setComment(e.target.value)} placeholder={t("thread.write")} maxLength={800} />

@@ -14,12 +14,12 @@ export const LANGUAGE_STORAGE_KEY = "debaticaLanguage";
 
 const en = {
   "language.label": "Display language",
-  "nav.home": "Home", "nav.search": "Search", "nav.create": "Create", "nav.categories": "Categories", "nav.guest": "Guest",
+  "nav.home": "Home", "nav.search": "Search", "nav.create": "Create", "nav.categories": "Categories", "nav.help": "Help", "nav.guest": "Guest",
   "action.report": "Report", "action.reported": "Reported", "action.delete": "Delete", "action.reply": "Reply", "action.translate": "Translate", "action.original": "Show original", "action.post": "Post", "action.cancel": "Cancel", "action.save": "Save changes", "action.skip": "Skip", "action.shareX": "Share on X",
   "sort.best": "Best", "sort.new": "New", "sort.old": "Old", "status.trending": "🔥 Trending", "status.rising": "⬆ Rising", "status.new": "🟢 New",
   "thread.back": "← Back to debates", "thread.started": "Started {time} ago", "thread.votePrompt": "Where do you stand?", "thread.agree": "Agree", "thread.disagree": "Disagree", "thread.noVotesYet": "Be the first to vote", "thread.previewVote": "Your vote has been saved.", "thread.comments": "{count} comments", "thread.discussion": "DISCUSSION", "thread.now": "now", "thread.noVote": "no vote", "thread.points": "{count} points", "thread.write": "Write a comment...", "thread.composerNote": "Saved with your Guest ID · No URLs", "thread.translationSoon": "Translation will be available soon.", "thread.replying": "Replying to #{number}",
   "card.join": "Join debate", "card.votes": "{count} votes",
-  "report.title": "Report this content", "report.description": "Please contact the moderators via X DM.", "report.message": "Message moderators on X", "report.close": "Close report dialog",
+  "report.title": "Report this content", "report.description": "Contact the Faraday team on X.", "report.message": "Message us on X", "report.close": "Close report dialog",
   "profile.kicker": "GUEST", "profile.title": "Guest Profile", "profile.description": "Manage the optional context shown with comments from this browser.", "profile.guestId": "Guest ID", "profile.local": "This browser only", "profile.details": "Profile details", "profile.age": "Age range", "profile.country": "Country / region", "profile.private": "Prefer not to say", "profile.saved": "Saved",
   "home.kicker": "A place to disagree thoughtfully", "home.title": "What do you really think?", "home.subtitle": "Pick a side. Say why. Stay curious.", "home.today": "Today's debate", "home.live": "Live", "home.enter": "Enter the debate", "home.hot": "Hot Debates", "home.active": "Most Active", "home.momentum": "gaining momentum ↗", "home.closest": "Closest Split", "home.latest": "Latest Debates", "home.categories": "Categories", "home.seeAll": "See all", "home.browseAll": "Browse all",
   "category.Society": "Society", "category.Politics": "Politics", "category.Work & Business": "Work & Business", "category.Money": "Money", "category.Relationships": "Relationships", "category.Technology": "Technology", "category.Entertainment": "Entertainment", "category.Sports": "Sports", "category.Education": "Education", "category.Lifestyle": "Lifestyle"
@@ -29,7 +29,7 @@ export type TranslationKey = keyof typeof en;
 type Dictionary = Record<TranslationKey, string>;
 
 const ja: Dictionary = {
-  "language.label": "表示言語", "nav.home": "ホーム", "nav.search": "検索", "nav.create": "投稿", "nav.categories": "カテゴリ", "nav.guest": "ゲスト",
+  "language.label": "表示言語", "nav.home": "ホーム", "nav.search": "検索", "nav.create": "投稿", "nav.categories": "カテゴリ", "nav.help": "ヘルプ", "nav.guest": "ゲスト",
   "action.report": "報告", "action.reported": "報告済み", "action.delete": "削除", "action.reply": "返信", "action.translate": "翻訳", "action.original": "原文を表示", "action.post": "投稿", "action.cancel": "キャンセル", "action.save": "変更を保存", "action.skip": "スキップ", "action.shareX": "Xでシェア",
   "sort.best": "ベスト", "sort.new": "新着", "sort.old": "古い順", "status.trending": "🔥 トレンド", "status.rising": "⬆ 急上昇", "status.new": "🟢 新着",
   "thread.back": "← 議論一覧へ", "thread.started": "{time}前に開始", "thread.votePrompt": "あなたの意見は？", "thread.agree": "賛成", "thread.disagree": "反対", "thread.noVotesYet": "最初の投票をしよう", "thread.previewVote": "投票を保存しました。", "thread.comments": "コメント {count}件", "thread.discussion": "ディスカッション", "thread.now": "たった今", "thread.noVote": "未投票", "thread.points": "{count}ポイント", "thread.write": "コメントを書く...", "thread.composerNote": "ゲストIDで保存 · URL不可", "thread.translationSoon": "翻訳機能は近日公開予定です。", "thread.replying": "#{number} に返信中",
@@ -41,7 +41,7 @@ const ja: Dictionary = {
 };
 
 const es: Dictionary = {
-  "language.label": "Idioma", "nav.home": "Inicio", "nav.search": "Buscar", "nav.create": "Crear", "nav.categories": "Categorías", "nav.guest": "Invitado",
+  "language.label": "Idioma", "nav.home": "Inicio", "nav.search": "Buscar", "nav.create": "Crear", "nav.categories": "Categorías", "nav.help": "Ayuda", "nav.guest": "Invitado",
   "action.report": "Reportar", "action.reported": "Reportado", "action.delete": "Eliminar", "action.reply": "Responder", "action.translate": "Traducir", "action.original": "Ver original", "action.post": "Publicar", "action.cancel": "Cancelar", "action.save": "Guardar cambios", "action.skip": "Omitir", "action.shareX": "Compartir en X",
   "sort.best": "Mejores", "sort.new": "Nuevos", "sort.old": "Antiguos", "status.trending": "🔥 Tendencia", "status.rising": "⬆ En ascenso", "status.new": "🟢 Nuevo",
   "thread.back": "← Volver a debates", "thread.started": "Iniciado hace {time}", "thread.votePrompt": "¿Qué opinas?", "thread.agree": "De acuerdo", "thread.disagree": "En desacuerdo", "thread.noVotesYet": "Sé la primera persona en votar", "thread.previewVote": "Tu voto ha sido guardado.", "thread.comments": "{count} comentarios", "thread.discussion": "DEBATE", "thread.now": "ahora", "thread.noVote": "sin voto", "thread.points": "{count} puntos", "thread.write": "Escribe un comentario...", "thread.composerNote": "Guardado con tu ID de invitado · Sin URL", "thread.translationSoon": "La traducción estará disponible pronto.", "thread.replying": "Respondiendo a #{number}",
@@ -52,7 +52,7 @@ const es: Dictionary = {
 };
 
 const pt: Dictionary = {
-  "language.label": "Idioma", "nav.home": "Início", "nav.search": "Buscar", "nav.create": "Criar", "nav.categories": "Categorias", "nav.guest": "Visitante",
+  "language.label": "Idioma", "nav.home": "Início", "nav.search": "Buscar", "nav.create": "Criar", "nav.categories": "Categorias", "nav.help": "Ajuda", "nav.guest": "Visitante",
   "action.report": "Denunciar", "action.reported": "Denunciado", "action.delete": "Excluir", "action.reply": "Responder", "action.translate": "Traduzir", "action.original": "Ver original", "action.post": "Publicar", "action.cancel": "Cancelar", "action.save": "Salvar alterações", "action.skip": "Pular", "action.shareX": "Compartilhar no X",
   "sort.best": "Melhores", "sort.new": "Novos", "sort.old": "Antigos", "status.trending": "🔥 Tendência", "status.rising": "⬆ Em alta", "status.new": "🟢 Novo",
   "thread.back": "← Voltar aos debates", "thread.started": "Iniciado há {time}", "thread.votePrompt": "Qual é a sua opinião?", "thread.agree": "Concordo", "thread.disagree": "Discordo", "thread.noVotesYet": "Seja a primeira pessoa a votar", "thread.previewVote": "Seu voto foi salvo.", "thread.comments": "{count} comentários", "thread.discussion": "DISCUSSÃO", "thread.now": "agora", "thread.noVote": "sem voto", "thread.points": "{count} pontos", "thread.write": "Escreva um comentário...", "thread.composerNote": "Salvo com seu ID de visitante · Sem URLs", "thread.translationSoon": "A tradução estará disponível em breve.", "thread.replying": "Respondendo a #{number}",
@@ -63,7 +63,7 @@ const pt: Dictionary = {
 };
 
 const fr: Dictionary = {
-  "language.label": "Langue", "nav.home": "Accueil", "nav.search": "Recherche", "nav.create": "Créer", "nav.categories": "Catégories", "nav.guest": "Invité",
+  "language.label": "Langue", "nav.home": "Accueil", "nav.search": "Recherche", "nav.create": "Créer", "nav.categories": "Catégories", "nav.help": "Aide", "nav.guest": "Invité",
   "action.report": "Signaler", "action.reported": "Signalé", "action.delete": "Supprimer", "action.reply": "Répondre", "action.translate": "Traduire", "action.original": "Voir l’original", "action.post": "Publier", "action.cancel": "Annuler", "action.save": "Enregistrer", "action.skip": "Ignorer", "action.shareX": "Partager sur X",
   "sort.best": "Meilleurs", "sort.new": "Nouveaux", "sort.old": "Anciens", "status.trending": "🔥 Tendance", "status.rising": "⬆ En hausse", "status.new": "🟢 Nouveau",
   "thread.back": "← Retour aux débats", "thread.started": "Lancé il y a {time}", "thread.votePrompt": "Quel est votre avis ?", "thread.agree": "D’accord", "thread.disagree": "Pas d’accord", "thread.noVotesYet": "Soyez la première personne à voter", "thread.previewVote": "Votre vote a été enregistré.", "thread.comments": "{count} commentaires", "thread.discussion": "DISCUSSION", "thread.now": "maintenant", "thread.noVote": "sans vote", "thread.points": "{count} points", "thread.write": "Écrire un commentaire...", "thread.composerNote": "Enregistré avec votre ID invité · Sans URL", "thread.translationSoon": "La traduction sera bientôt disponible.", "thread.replying": "Réponse à #{number}",
@@ -74,7 +74,7 @@ const fr: Dictionary = {
 };
 
 const ko: Dictionary = {
-  "language.label": "표시 언어", "nav.home": "홈", "nav.search": "검색", "nav.create": "작성", "nav.categories": "카테고리", "nav.guest": "게스트",
+  "language.label": "표시 언어", "nav.home": "홈", "nav.search": "검색", "nav.create": "작성", "nav.categories": "카테고리", "nav.help": "도움말", "nav.guest": "게스트",
   "action.report": "신고", "action.reported": "신고됨", "action.delete": "삭제", "action.reply": "답글", "action.translate": "번역", "action.original": "원문 보기", "action.post": "게시", "action.cancel": "취소", "action.save": "변경 저장", "action.skip": "건너뛰기", "action.shareX": "X에 공유",
   "sort.best": "베스트", "sort.new": "최신", "sort.old": "오래된 순", "status.trending": "🔥 트렌딩", "status.rising": "⬆ 급상승", "status.new": "🟢 신규",
   "thread.back": "← 토론 목록으로", "thread.started": "{time} 전에 시작", "thread.votePrompt": "어떻게 생각하시나요?", "thread.agree": "동의", "thread.disagree": "반대", "thread.noVotesYet": "첫 번째로 투표해 보세요", "thread.previewVote": "투표가 저장되었습니다.", "thread.comments": "댓글 {count}개", "thread.discussion": "토론", "thread.now": "방금", "thread.noVote": "투표 없음", "thread.points": "{count}포인트", "thread.write": "댓글 작성...", "thread.composerNote": "게스트 ID로 저장 · URL 불가", "thread.translationSoon": "번역 기능은 곧 제공될 예정입니다.", "thread.replying": "#{number}에 답글 작성 중",

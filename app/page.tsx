@@ -7,9 +7,11 @@ import { useLanguage } from "@/components/language-provider";
 import { getSupabaseBrowserClient, isSupabaseConfigured } from "@/lib/supabase/client";
 import { fetchThreads } from "@/lib/supabase/data";
 import type { Thread } from "@/lib/data";
+import { CategoryGrid } from "@/components/category-grid";
+import Link from "next/link";
 
 export default function Home() {
-  const { t } = useLanguage();
+  const { locale, setLocale, t } = useLanguage();
   const [supabaseThreads, setSupabaseThreads] = useState<Thread[] | null>(null);
   const [loading, setLoading] = useState(isSupabaseConfigured());
   const [loadError, setLoadError] = useState("");
@@ -45,10 +47,29 @@ export default function Home() {
 
   return (
     <div className="page home-page">
-      <section className="welcome">
-        <p className="kicker">{t("home.kicker")}</p>
-        <h1>{t("home.title")}</h1>
+      <h1 className="visually-hidden">Debatica debates</h1>
+      <div className="home-layout">
+      <div className="home-main">
+      <section className="home-intro" aria-label="Debatica introduction and language">
         <p>{t("home.subtitle")}</p>
+        <div className="language-options" role="group" aria-label="Choose display language / 表示言語を選択">
+          <button
+            type="button"
+            className={locale === "ja" ? "active" : ""}
+            aria-pressed={locale === "ja"}
+            onClick={() => setLocale("ja")}
+          >
+            <span aria-hidden="true">🇯🇵</span> 日本語
+          </button>
+          <button
+            type="button"
+            className={locale === "en" ? "active" : ""}
+            aria-pressed={locale === "en"}
+            onClick={() => setLocale("en")}
+          >
+            <span aria-hidden="true">🇺🇸</span> English
+          </button>
+        </div>
       </section>
 
       {loading && <p className="data-status" role="status">Loading threads…</p>}
@@ -56,11 +77,28 @@ export default function Home() {
 
       <section className="content-section home-feed">
         <div className="sort-tabs home-sort" role="group" aria-label="Sort debates">
-          <button aria-pressed={sort === "new"} className={sort === "new" ? "active" : ""} onClick={() => setSort("new")}>New</button>
-          <button aria-pressed={sort === "popular"} className={sort === "popular" ? "active" : ""} onClick={() => setSort("popular")}>Popular</button>
+          <button aria-pressed={sort === "new"} className={sort === "new" ? "active" : ""} onClick={() => setSort("new")}>{t("sort.new")}</button>
+          <button aria-pressed={sort === "popular"} className={sort === "popular" ? "active" : ""} onClick={() => setSort("popular")}>{t("sort.best")}</button>
         </div>
         <div className="thread-list">{sortedThreads.map((thread) => <ThreadCard thread={thread} key={thread.id} />)}</div>
       </section>
+      </div>
+      <aside className="desktop-sidebar" aria-label="Explore Debatica">
+        <section className="sidebar-panel">
+          <div className="sidebar-heading">
+            <div><span className="section-index">EXPLORE</span><h2>Categories</h2></div>
+            <Link href="/categories">View all</Link>
+          </div>
+          <CategoryGrid limit={6} />
+        </section>
+        <section className="sidebar-panel sidebar-create">
+          <span className="section-index">YOUR TURN</span>
+          <h2>Put a question to the board.</h2>
+          <p>Start a focused debate and see where opinion splits.</p>
+          <Link className="primary-button" href="/create">Create a debate</Link>
+        </section>
+      </aside>
+      </div>
     </div>
   );
 }

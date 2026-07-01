@@ -56,14 +56,14 @@ export function ReportModal({ open, onClose, targetType = "general", targetId, t
   async function saveReport() {
     const client = getSupabaseBrowserClient();
     if (!client) {
-      setReportStatus("Report storage is unavailable. You can still contact the moderators on X.");
+      setReportStatus("Report storage is unavailable. You can still contact the Faraday team on X.");
       return;
     }
     try {
       await createReport(client, { targetType, targetId, threadId, guestId: getOrCreateGuestIdentity().id });
-      setReportStatus("Report saved for moderator review.");
+      setReportStatus("Report saved for review.");
     } catch (error) {
-      setReportStatus(writeErrorMessage(error, "Could not save the report. You can still contact the moderators on X."));
+      setReportStatus(writeErrorMessage(error, "Could not save the report. You can still contact the Faraday team on X."));
     }
   }
 

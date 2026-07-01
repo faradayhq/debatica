@@ -72,7 +72,7 @@ export function CountryPrompt({ open, onComplete }: CountryPromptProps) {
         <button className="modal-close" aria-label="Skip optional guest profile" onClick={() => finish()}>×</button>
         <span className="modal-icon" aria-hidden="true">◎</span>
         <h2 id="country-modal-title">Optional guest profile</h2>
-        <p id="country-modal-description" className="selection-note">Add a little context to your comments. Both fields are optional and stay only in this browser.</p>
+        <p id="country-modal-description" className="selection-note">Add context to your comments. Both fields are optional, saved on this device, and shared with comments you post.</p>
         <div className="guest-profile-fields">
           <label className="country-select-label">
             <span>{t("profile.age")}</span>

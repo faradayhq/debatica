@@ -10,7 +10,7 @@ const items = [
   { href: "/search", labelKey: "nav.search" as const, icon: "search" as const },
   { href: "/create", labelKey: "nav.create" as const, icon: "plus" as const, primary: true },
   { href: "/categories", labelKey: "nav.categories" as const, icon: "grid" as const },
-  { href: "/profile", labelKey: "nav.guest" as const, icon: "user" as const }
+  { href: "/help", labelKey: "nav.help" as const, icon: "help" as const }
 ];
 
 export function BottomNav() {

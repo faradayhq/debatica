@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { InfoPage } from "@/components/info-page";
 
-export const metadata: Metadata = { title: "About · Debatica", description: "Learn how Debatica makes public opinion splits visible across topics." };
+export const metadata: Metadata = { title: "About", description: "Learn how Debatica makes public opinion splits visible across topics." };
 
 export default function AboutPage() {
   return <InfoPage eyebrow="ABOUT" title="About Debatica" intro="Debatica is an anonymous debate board that shows how public opinion splits across topics." sections={[
