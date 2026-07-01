@@ -37,7 +37,7 @@ export function VoteSplit({ agree, disagree, compact = false, animate = false }:
     <div className={`vote-split ${compact ? "compact" : ""} leader-${leader}`}>
       <div className="vote-labels">
         <span className={leader === "agree" ? "leading" : ""}><b><AnimatedNumber value={agreePercent} enabled={animate} />%</b> {t("thread.agree")}</span>
-        {!compact && <span className={leader === "disagree" ? "leading" : ""}><b><AnimatedNumber value={disagreePercent} enabled={animate} />%</b> {t("thread.disagree")}</span>}
+        <span className={`${leader === "disagree" ? "leading " : ""}${compact ? "compact-secondary" : ""}`}><b><AnimatedNumber value={disagreePercent} enabled={animate} />%</b> {t("thread.disagree")}</span>
       </div>
       <div className="vote-track" role="img" aria-label={`${agreePercent}% agree, ${disagreePercent}% disagree`}><span className="agree-bar" style={{ width: `${agreePercent}%` }} /><span className="disagree-bar" style={{ width: `${disagreePercent}%` }} /></div>
     </div>

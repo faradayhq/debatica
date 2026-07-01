@@ -95,6 +95,7 @@ export function ThreadView({ thread }: { thread: Thread }) {
       ? thread.comments
       : baseComments.length;
   const displayedCommentCount = baseDisplayCommentCount + addedComments.length;
+  const showingTopComments = Boolean(thread.seedActivity && allComments.length < displayedCommentCount);
   const topLevelComments = allComments.filter((item) => !item.replyTo);
   const displayed = topLevelComments;
   const commentHasUrl = /https?|www/i.test(comment);
@@ -378,7 +379,7 @@ export function ThreadView({ thread }: { thread: Thread }) {
     <div className="page thread-page">
       <Link href="/" className="back-link">{t("thread.back")}</Link>
       <article className="thread-hero">
-        <div className="eyebrow-row"><span className="category-pill">{t(categoryTranslationKey(thread.category))}</span><span className="thread-hero-meta"><span>{t("thread.started", { time: thread.time })}</span><button className="report-button" onClick={() => setReportOpen(true)}>{t("action.report")}</button></span></div>
+        <div className="eyebrow-row"><span className="category-pill">{t(categoryTranslationKey(thread.category))}</span><span className="thread-hero-meta"><span>{t("thread.started", { time: thread.time === "Yesterday" ? "1 day" : thread.time })}</span><button className="report-button" onClick={() => setReportOpen(true)}>{t("action.report")}</button></span></div>
         <BrowserTranslatedContent segments={[
           { as: "h1", text: displayedTitle },
           ...(thread.description ? [{ as: "p" as const, className: "thread-description", text: thread.description }] : [])
@@ -402,12 +403,12 @@ export function ThreadView({ thread }: { thread: Thread }) {
       <AdPlaceholder className="thread-ad-placeholder" />
 
       <section className="comments-section">
-        <div className="comments-title"><div><span className="section-index">{t("thread.discussion")}</span><h2>{t("thread.comments", { count: displayedCommentCount })}</h2></div></div>
+        <div className="comments-title"><div><span className="section-index">{t("thread.discussion")}</span><h2>{showingTopComments ? "Top comments" : t("thread.comments", { count: displayedCommentCount })}</h2></div>{showingTopComments && <span className="comments-total">{t("thread.comments", { count: displayedCommentCount })} total</span>}</div>
         {commentsLoading && <p className="data-status" role="status">Loading comments…</p>}
         {!commentsLoading && !displayedCommentCount && <EmptyState title="No comments yet" message="Be the first to share a perspective." compact showCreate={false} />}
         <div className="comment-list">
           {displayed.map((item) => {
-            const timeLabel = formatCommentTime(item.createdAt);
+            const timeLabel = persistedThread ? formatCommentTime(item.createdAt) : item.time;
             const profileCountry = getCountryByValue(item.profile?.country);
             const profileLabel = [profileCountry && `${profileCountry.flag} ${profileCountry.name}`, item.profile?.ageRange].filter(Boolean).join(" · ");
             const commentVote = commentVotes[`comment-id-${item.id}`];
@@ -434,7 +435,7 @@ export function ThreadView({ thread }: { thread: Thread }) {
               {replies.length > 0 && <div className="comment-replies">
                 <button type="button" className="replies-toggle" aria-expanded={repliesExpanded} onClick={() => toggleReplies(item.id)}>{repliesExpanded ? "Hide replies" : `View ${replies.length} ${replies.length === 1 ? "reply" : "replies"}`}</button>
                 {repliesExpanded && <div className="reply-list">{replies.map((reply) => {
-                  const replyTime = formatCommentTime(reply.createdAt);
+                  const replyTime = persistedThread ? formatCommentTime(reply.createdAt) : reply.time;
                   return <div className="reply-item" id={`comment-${reply.id}`} key={reply.id}>
                     <div><b>{reply.author}</b><span>{replyTime}</span><button type="button" onClick={() => startReply(item.id)}>{t("action.reply")}</button></div>
                     <BrowserTranslatedContent segments={[{ text: reply.text }]} buttonClassName="comment-translation-button" />

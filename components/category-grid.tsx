@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { categories, categoryMeta } from "@/lib/data";
+import { categoryFilters } from "@/lib/data";
 import { categoryTranslationKey } from "@/lib/i18n";
 import { useLanguage } from "./language-provider";
 
@@ -9,10 +9,10 @@ export function CategoryGrid({ limit, activeCategory }: { limit?: number; active
   const { t } = useLanguage();
   return (
     <div className="category-grid">
-      {categories.slice(0, limit).map((category) => (
-        <Link href={activeCategory === category ? "/categories" : `/categories?category=${encodeURIComponent(category)}`} className={`category-card ${activeCategory === category ? "active" : ""}`} aria-current={activeCategory === category ? "page" : undefined} aria-label={activeCategory === category ? `Clear ${category} filter` : `Browse ${category}`} key={category}>
-          <span className={`category-icon ${categoryMeta[category].color}`}>{categoryMeta[category].icon}</span>
-          <span>{t(categoryTranslationKey(category))}</span>
+      {categoryFilters.slice(0, limit).map((filter) => (
+        <Link href={activeCategory === filter.slug ? "/categories" : `/categories?category=${encodeURIComponent(filter.slug)}`} className={`category-card ${activeCategory === filter.slug ? "active" : ""}`} aria-current={activeCategory === filter.slug ? "page" : undefined} aria-label={activeCategory === filter.slug ? `Clear ${filter.slug} filter` : `Browse ${filter.slug}`} key={filter.slug}>
+          <span className={`category-icon ${filter.color}`}>{filter.icon}</span>
+          <span>{t(categoryTranslationKey(filter.categories[0]))}</span>
         </Link>
       ))}
     </div>

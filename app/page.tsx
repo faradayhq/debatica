@@ -9,6 +9,15 @@ import type { Thread } from "@/lib/data";
 import { CategoryGrid } from "@/components/category-grid";
 import Link from "next/link";
 
+function seedAgeHours(time: string) {
+  if (time === "Yesterday") return 24;
+  const value = Number.parseFloat(time);
+  if (!Number.isFinite(value)) return 0;
+  if (/day|d$/i.test(time)) return value * 24;
+  if (/h$/i.test(time)) return value;
+  return value / 60;
+}
+
 export default function Home() {
   const [supabaseThreads, setSupabaseThreads] = useState<Thread[] | null>(null);
   const [loading, setLoading] = useState(isSupabaseConfigured());
@@ -25,7 +34,7 @@ export default function Home() {
     const popularity = (thread: Thread) => {
       const ageHours = thread.createdAt
         ? Math.max(0, (Date.now() - Date.parse(thread.createdAt)) / 3_600_000)
-        : Number.parseFloat(thread.time) * (thread.time.endsWith("d") ? 24 : thread.time.endsWith("h") ? 1 : 1 / 60);
+        : seedAgeHours(thread.time);
       const momentum = (thread.votes + thread.comments * 3) / Math.pow(ageHours + 2, 0.35);
       return thread.votes + thread.comments * 3 + momentum * 5;
     };
